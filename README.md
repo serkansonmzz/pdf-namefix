@@ -29,6 +29,25 @@ rust-notes-unknown.pdf
 invoice123.pdf
 ```
 
+## PDF Scanner
+
+Phase 2 adds safe PDF discovery.
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+uv run pdf-namefix preview ~/Downloads ~/Desktop
+uv run pdf-namefix preview ~/Downloads --recursive
+```
+
+The scanner:
+
+- finds `.pdf` and `.PDF` files
+- supports multiple input paths
+- supports optional recursive scanning
+- ignores non-PDF files
+- avoids duplicate files
+- reports warnings without renaming anything
+
 ## CLI Preview
 
 Phase 1 introduces the initial CLI skeleton.
