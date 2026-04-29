@@ -5,6 +5,7 @@ import typer
 from rich.console import Console
 
 from pdf_namefix import __version__
+from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.scanner import scan_pdf_files
 
 
@@ -53,23 +54,28 @@ def preview(
     ] = False,
 ) -> None:
     """
-    Preview discovered PDF files without touching files.
+    Preview discovered PDF files and basic document type guesses without touching files.
     """
     console.print("[bold]Preview mode[/bold]")
     console.print("No files will be renamed in this command.")
     console.print("")
 
     result = scan_pdf_files(paths=paths, recursive=recursive)
+    classified_files = classify_pdf_files(result.pdf_files)
 
     console.print(f"PDF files found: [bold]{result.count}[/bold]")
 
-    if result.pdf_files:
+    if classified_files:
         console.print("")
-        for index, pdf_file in enumerate(result.pdf_files, start=1):
+        for index, classified in enumerate(classified_files, start=1):
+            pdf_file = classified.pdf_file
             size_kb = pdf_file.size_bytes / 1024
+
             console.print(
-                f"{index}. {pdf_file.path} "
-                f"[dim]({size_kb:.1f} KB)[/dim]"
+                fr"{index}. {pdf_file.path} "
+                f"[dim]({size_kb:.1f} KB)[/dim] "
+                fr"[cyan]\[{classified.document_type.value}][/cyan] "
+                f"[dim]confidence={classified.confidence:.1f}[/dim]"
             )
 
     if result.warnings:
