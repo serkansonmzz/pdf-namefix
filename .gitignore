@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+
+# Virtual environments
+.venv/
+venv/
+
+# Build artifacts
+dist/
+build/
+*.egg-info/
+
+# Environment files
+.env
+.env.*
+
+# Runtime/generated files
+.pdf-namefix/
+rename-log.json
+rename-log.jsonl
+generated/
+reports/
+
+# OS files
+.DS_Store
+Thumbs.db
