@@ -19,7 +19,7 @@ build/
 # Environment files
 .env
 .env.*
-
+.python-version
 # Runtime/generated files
 .pdf-namefix/
 rename-log.json

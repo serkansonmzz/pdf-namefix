@@ -27,3 +27,16 @@ document-final-v3.pdf
 whatsapp-document-2026.pdf
 rust-notes-unknown.pdf
 invoice123.pdf
+```
+
+## CLI Preview
+
+Phase 1 introduces the initial CLI skeleton.
+
+```bash
+uv run pdf-namefix --help
+uv run pdf-namefix --version
+uv run pdf-namefix preview ~/Downloads
+uv run pdf-namefix apply ~/Downloads
+uv run pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs
+```
