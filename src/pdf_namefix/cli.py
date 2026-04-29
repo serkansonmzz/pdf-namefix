@@ -5,6 +5,7 @@ import typer
 from rich.console import Console
 
 from pdf_namefix import __version__
+from pdf_namefix.scanner import scan_pdf_files
 
 
 app = typer.Typer(
@@ -52,18 +53,30 @@ def preview(
     ] = False,
 ) -> None:
     """
-    Preview suggested PDF filename changes without touching files.
+    Preview discovered PDF files without touching files.
     """
     console.print("[bold]Preview mode[/bold]")
     console.print("No files will be renamed in this command.")
+    console.print("")
 
-    for path in paths:
-        console.print(f"- scan target: {path}")
+    result = scan_pdf_files(paths=paths, recursive=recursive)
 
-    if recursive:
-        console.print("Recursive scan: enabled")
-    else:
-        console.print("Recursive scan: disabled")
+    console.print(f"PDF files found: [bold]{result.count}[/bold]")
+
+    if result.pdf_files:
+        console.print("")
+        for index, pdf_file in enumerate(result.pdf_files, start=1):
+            size_kb = pdf_file.size_bytes / 1024
+            console.print(
+                f"{index}. {pdf_file.path} "
+                f"[dim]({size_kb:.1f} KB)[/dim]"
+            )
+
+    if result.warnings:
+        console.print("")
+        console.print("[yellow]Warnings:[/yellow]")
+        for warning in result.warnings:
+            console.print(f"- {warning.path}: {warning.reason}")
 
 
 @app.command()

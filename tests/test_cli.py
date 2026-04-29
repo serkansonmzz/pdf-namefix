@@ -24,28 +24,57 @@ def test_version_command():
     assert f"pdf-namefix {__version__}" in result.output
 
 
-def test_preview_accepts_single_path():
-    result = runner.invoke(app, ["preview", "/tmp"])
+def test_preview_accepts_single_path(tmp_path):
+    pdf = tmp_path / "sample.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path)])
 
     assert result.exit_code == 0
     assert "Preview mode" in result.output
     assert "No files will be renamed" in result.output
-    assert "/tmp" in result.output
+    assert "PDF files found: 1" in result.output
+    assert "sample.pdf" in result.output
 
 
-def test_preview_accepts_multiple_paths():
-    result = runner.invoke(app, ["preview", "/tmp", "/var/tmp"])
+def test_preview_accepts_multiple_paths(tmp_path):
+    folder_a = tmp_path / "a"
+    folder_b = tmp_path / "b"
+    folder_a.mkdir()
+    folder_b.mkdir()
+
+    (folder_a / "one.pdf").write_text("test", encoding="utf-8")
+    (folder_b / "two.pdf").write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(folder_a), str(folder_b)])
 
     assert result.exit_code == 0
-    assert "/tmp" in result.output
-    assert "/var/tmp" in result.output
+    assert "PDF files found: 2" in result.output
+    assert "one.pdf" in result.output
+    assert "two.pdf" in result.output
 
 
-def test_preview_recursive_flag():
-    result = runner.invoke(app, ["preview", "/tmp", "--recursive"])
+def test_preview_recursive_flag(tmp_path):
+    nested = tmp_path / "nested"
+    nested.mkdir()
+    (nested / "inside.pdf").write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--recursive"])
 
     assert result.exit_code == 0
-    assert "Recursive scan: enabled" in result.output
+    assert "PDF files found: 1" in result.output
+    assert "inside.pdf" in result.output
+
+
+def test_preview_missing_path_shows_warning(tmp_path):
+    missing = tmp_path / "missing"
+
+    result = runner.invoke(app, ["preview", str(missing)])
+
+    assert result.exit_code == 0
+    assert "PDF files found: 0" in result.output
+    assert "Warnings" in result.output
+    assert "does not exist" in result.output
 
 
 def test_apply_is_skeleton_only():
