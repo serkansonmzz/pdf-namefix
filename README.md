@@ -48,6 +48,59 @@ The scanner:
 - avoids duplicate files
 - reports warnings without renaming anything
 
+## Document Type Classifier
+
+Phase 3 adds a simple filename-based document type classifier.
+
+The classifier is intentionally local and deterministic.
+
+It currently supports types such as:
+
+```text
+invoice
+receipt
+contract
+report
+statement
+tax
+offer
+application
+book
+ebook
+course
+lesson
+notes
+paper
+article
+slides
+manual
+transcript
+worksheet
+guide
+cheatsheet
+document
+unknown
+```
+
+Example:
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+```
+
+Possible output:
+
+```text
+PDF files found: 3
+
+1. /Users/me/Downloads/rust_lifetimes_notes.pdf (120.0 KB) [notes] confidence=0.9
+2. /Users/me/Downloads/clean_architecture_book.pdf (5.2 MB) [book] confidence=0.9
+3. /Users/me/Downloads/random_scan.pdf (84.1 KB) [document] confidence=0.3
+```
+
+Phase 3 does not inspect PDF content yet.  
+Classification is based on filenames only.
+
 ## CLI Preview
 
 Phase 1 introduces the initial CLI skeleton.

@@ -55,3 +55,13 @@ The CLI should allow more than one path.
 Reason:
 
 Users often keep PDFs across Downloads, Desktop, Documents, and project folders.
+
+## Decision 008: Phase 3 classifier is filename-based
+
+The first document type classifier will use filename keywords only.
+
+Reason:
+
+This keeps the first classification layer local, predictable, testable, and AI-free.
+
+PDF content extraction, metadata parsing, OCR, and AI-assisted classification are future improvements.

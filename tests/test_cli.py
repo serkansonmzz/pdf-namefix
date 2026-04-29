@@ -25,7 +25,7 @@ def test_version_command():
 
 
 def test_preview_accepts_single_path(tmp_path):
-    pdf = tmp_path / "sample.pdf"
+    pdf = tmp_path / "sample_invoice.pdf"
     pdf.write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["preview", str(tmp_path)])
@@ -34,7 +34,8 @@ def test_preview_accepts_single_path(tmp_path):
     assert "Preview mode" in result.output
     assert "No files will be renamed" in result.output
     assert "PDF files found: 1" in result.output
-    assert "sample.pdf" in result.output
+    assert "sample_invoice" in result.output
+    assert "invoice" in result.output
 
 
 def test_preview_accepts_multiple_paths(tmp_path):
@@ -43,27 +44,43 @@ def test_preview_accepts_multiple_paths(tmp_path):
     folder_a.mkdir()
     folder_b.mkdir()
 
-    (folder_a / "one.pdf").write_text("test", encoding="utf-8")
-    (folder_b / "two.pdf").write_text("test", encoding="utf-8")
+    (folder_a / "one_invoice.pdf").write_text("test", encoding="utf-8")
+    (folder_b / "two_book.pdf").write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["preview", str(folder_a), str(folder_b)])
 
     assert result.exit_code == 0
     assert "PDF files found: 2" in result.output
-    assert "one.pdf" in result.output
-    assert "two.pdf" in result.output
+    assert "one_invoice" in result.output
+    assert "two_book" in result.output
+    assert "invoice" in result.output
+    assert "book" in result.output
 
 
 def test_preview_recursive_flag(tmp_path):
     nested = tmp_path / "nested"
     nested.mkdir()
-    (nested / "inside.pdf").write_text("test", encoding="utf-8")
+    (nested / "inside_slides.pdf").write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["preview", str(tmp_path), "--recursive"])
 
     assert result.exit_code == 0
     assert "PDF files found: 1" in result.output
-    assert "inside.pdf" in result.output
+    assert "inside" in result.output
+    assert "slide" in result.output
+    assert "confidence=0.9" in result.output
+
+
+def test_preview_unknown_file_type(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "PDF files found: 1" in result.output
+    assert "random_39281" in result.output
+    assert "unknown" in result.output
 
 
 def test_preview_missing_path_shows_warning(tmp_path):
