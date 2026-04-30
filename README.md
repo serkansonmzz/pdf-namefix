@@ -265,6 +265,26 @@ Summary
 
 Phase 5 still does not rename, move, copy, or delete files.
 
+## Recommended Safe Workflow
+
+For first-time usage, prefer this order:
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+uv run pdf-namefix apply ~/Downloads
+uv run pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs --copy
+```
+
+Use `--copy` for the first organize run if you want to keep originals in place.
+
+## Known Limitations
+
+See:
+
+```text
+docs/KNOWN_LIMITATIONS.md
+```
+
 ## CLI Preview
 
 Phase 1 introduces the initial CLI skeleton.

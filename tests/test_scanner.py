@@ -111,3 +111,19 @@ def test_scan_direct_non_pdf_file_returns_warning(tmp_path: Path):
     assert result.count == 0
     assert len(result.warnings) == 1
     assert "not a PDF" in result.warnings[0].reason
+
+
+def test_scan_deduplicates_direct_file_and_parent_folder(tmp_path: Path):
+    pdf = write_file(tmp_path / "one.pdf")
+
+    result = scan_pdf_files([pdf, tmp_path])
+
+    assert result.count == 1
+    assert result.pdf_files[0].name == "one.pdf"
+
+
+def test_scan_empty_folder_returns_empty_result(tmp_path: Path):
+    result = scan_pdf_files([tmp_path])
+
+    assert result.count == 0
+    assert result.warnings == []

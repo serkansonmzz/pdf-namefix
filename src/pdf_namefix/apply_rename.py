@@ -25,6 +25,20 @@ def build_rename_plan(
         source_path = pdf_file.path
         target_path = source_path.with_name(suggestion.suggested_name)
 
+        if not source_path.exists():
+            items.append(
+                RenamePlanItem(
+                    source_path=source_path,
+                    target_path=target_path,
+                    original_name=source_path.name,
+                    suggested_name=suggestion.suggested_name,
+                    document_type=classified.document_type,
+                    skipped=True,
+                    skip_reason="Source file no longer exists.",
+                )
+            )
+            continue
+
         if suggestion.has_collision:
             items.append(
                 RenamePlanItem(

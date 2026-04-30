@@ -60,6 +60,19 @@ def build_organize_plan(
         target_dir = out_dir.expanduser() / folder_name
         target_path = target_dir / pdf_file.path.name
 
+        if not pdf_file.path.exists():
+            items.append(
+                OrganizePlanItem(
+                    source_path=pdf_file.path,
+                    target_path=target_path,
+                    document_type=classified.document_type,
+                    mode=mode,
+                    skipped=True,
+                    skip_reason="Source file no longer exists.",
+                )
+            )
+            continue
+
         if pdf_file.path.resolve() == target_path.resolve(strict=False):
             items.append(
                 OrganizePlanItem(

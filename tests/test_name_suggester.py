@@ -176,3 +176,18 @@ def test_has_any_collision_returns_false_for_unique_suggestions():
     suggestions = suggest_filenames(classified_files)
 
     assert has_any_collision(suggestions) is False
+
+
+def test_strip_unknown_date_prefix_when_reprocessing_generated_name():
+    pdf_file = make_pdf_file("unknown-date_rust_lifetimes_notes.pdf")
+    classified = classify_pdf_file(pdf_file)
+
+    suggestion = suggest_filename(classified)
+
+    assert suggestion.suggested_name == "unknown-date_rust_lifetimes_notes.pdf"
+
+
+def test_unknown_and_date_are_removed_from_title_slug():
+    slug = build_title_slug(Path("unknown-date_random_document.pdf"), "document")
+
+    assert slug == "random"
