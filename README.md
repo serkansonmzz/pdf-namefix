@@ -130,6 +130,44 @@ PDF files found: 3
 
 Phase 4 still does not rename, move, copy, or delete files.
 
+## Preview Hardening
+
+Phase 5 improves the preview command with:
+
+- summary output
+- unknown type count
+- warning count
+- suggested filename collision detection
+- optional verbose reasons
+
+Example:
+
+```bash
+uv run pdf-namefix preview ~/Downloads --verbose
+```
+
+Possible output:
+
+```text
+PDF files found: 2
+
+1. /Users/me/Downloads/scan.pdf (10.0 KB) [document] confidence=0.3 [COLLISION]
+   → unknown-date_unknown_document.pdf
+   classification: Matched generic keyword: scan
+   suggestion: Built from filename date, cleaned title slug, and classified document type.
+
+2. /Users/me/Downloads/document.pdf (11.0 KB) [document] confidence=0.3 [COLLISION]
+   → unknown-date_unknown_document.pdf
+
+Summary
+- Total PDF files: 2
+- Unknown type: 0
+- Suggested name collisions: 2
+- Warnings: 0
+```
+
+Phase 5 still does not rename, move, copy, or delete files.
+
 ## CLI Preview
 
 Phase 1 introduces the initial CLI skeleton.

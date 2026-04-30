@@ -124,10 +124,40 @@ def suggest_filename(classified_pdf_file: ClassifiedPdfFile) -> FilenameSuggesti
     )
 
 
+def mark_collisions(
+    suggestions: list[FilenameSuggestion],
+) -> list[FilenameSuggestion]:
+    name_counts: dict[str, int] = {}
+
+    for suggestion in suggestions:
+        name_counts[suggestion.suggested_name] = (
+            name_counts.get(suggestion.suggested_name, 0) + 1
+        )
+
+    updated: list[FilenameSuggestion] = []
+
+    for suggestion in suggestions:
+        has_collision = name_counts[suggestion.suggested_name] > 1
+
+        updated.append(
+            FilenameSuggestion(
+                classified_pdf_file=suggestion.classified_pdf_file,
+                suggested_name=suggestion.suggested_name,
+                reason=suggestion.reason,
+                has_collision=has_collision,
+                collision_group=suggestion.suggested_name if has_collision else None,
+            )
+        )
+
+    return updated
+
+
 def suggest_filenames(
     classified_pdf_files: list[ClassifiedPdfFile],
 ) -> list[FilenameSuggestion]:
-    return [
+    suggestions = [
         suggest_filename(classified_pdf_file)
         for classified_pdf_file in classified_pdf_files
     ]
+
+    return mark_collisions(suggestions)

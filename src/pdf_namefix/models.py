@@ -55,6 +55,8 @@ class FilenameSuggestion:
     classified_pdf_file: ClassifiedPdfFile
     suggested_name: str
     reason: str
+    has_collision: bool = False
+    collision_group: str | None = None
 
 
 @dataclass(frozen=True)

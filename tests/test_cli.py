@@ -113,3 +113,53 @@ def test_organize_is_skeleton_only():
     assert result.exit_code == 0
     assert "Organize mode is not implemented yet" in result.output
     assert "Output folder: /tmp/out" in result.output
+
+
+def test_preview_shows_summary(tmp_path):
+    pdf = tmp_path / "sample_invoice_2026-04-29.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "Summary" in result.output
+    assert "Total PDF files: 1" in result.output
+    assert "Unknown type: 0" in result.output
+    assert "Suggested name collisions: 0" in result.output
+    assert "Warnings: 0" in result.output
+
+
+def test_preview_marks_filename_collisions(tmp_path):
+    scan = tmp_path / "scan.pdf"
+    document = tmp_path / "document.pdf"
+    scan.write_text("test", encoding="utf-8")
+    document.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "[COLLISION]" in result.output
+    assert "Suggested name collisions: 2" in result.output
+    assert "Do not apply renames until collisions" in result.output
+
+
+def test_preview_verbose_shows_reasons(tmp_path):
+    pdf = tmp_path / "sample_invoice_2026-04-29.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--verbose"])
+
+    assert result.exit_code == 0
+    assert "classification:" in result.output
+    assert "suggestion:" in result.output
+
+
+def test_preview_default_hides_reasons(tmp_path):
+    pdf = tmp_path / "sample_invoice_2026-04-29.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "classification:" not in result.output
+    assert "suggestion:" not in result.output

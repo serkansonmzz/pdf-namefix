@@ -93,3 +93,27 @@ Suggested names are built from:
 Reason:
 
 v0.1 should avoid AI/OCR complexity and keep naming deterministic.
+
+## Decision 012: Phase 5 detects collisions but does not resolve them
+
+Preview will mark suggested filename collisions.
+
+Reason:
+
+Users should see unsafe rename situations before apply exists. Collision resolution will be handled later in the safe apply/rename flow.
+
+## Decision 013: Preview summary is required before apply
+
+Preview should show total files, unknown type count, collision count, and warning count.
+
+Reason:
+
+Renaming files should be based on a clear summary, not only a long list of suggestions.
+
+## Decision 014: Verbose mode shows reasons
+
+Preview supports `--verbose` to show classification and suggestion reasons.
+
+Reason:
+
+The default output should stay readable, but users and developers need a way to inspect why a suggestion was produced.
