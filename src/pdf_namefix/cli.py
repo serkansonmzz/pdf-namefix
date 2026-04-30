@@ -5,6 +5,7 @@ import typer
 from rich.console import Console
 
 from pdf_namefix import __version__
+from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.preview_report import build_preview_report
@@ -132,21 +133,70 @@ def apply(
     ] = False,
 ) -> None:
     """
-    Apply safe PDF filename changes after previewing suggestions.
+    Apply safe PDF filename changes.
 
-    This is only a skeleton in Phase 1.
+    This command renames files only after safety checks.
     """
-    console.print("[yellow]Apply mode is not implemented yet.[/yellow]")
-    console.print("Phase 1 only defines the CLI shape.")
+    console.print("[bold]Apply mode[/bold]")
+    console.print("Preparing safe rename plan...")
+    console.print("")
 
-    for path in paths:
-        console.print(f"- apply target: {path}")
+    result = scan_pdf_files(paths=paths, recursive=recursive)
+    classified_files = classify_pdf_files(result.pdf_files)
+    suggestions = suggest_filenames(classified_files)
+    report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
+    plan = build_rename_plan(suggestions=report.suggestions, warnings=report.warnings)
 
-    if recursive:
-        console.print("Recursive scan: enabled")
+    console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
+    console.print(f"Planned renames: [bold]{plan.planned_count}[/bold]")
+    console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
+    console.print(f"Warnings: [bold]{len(plan.warnings)}[/bold]")
+    console.print("")
 
-    if yes:
-        console.print("Auto-confirm: enabled")
+    if plan.items:
+        for index, item in enumerate(plan.items, start=1):
+            if item.skipped:
+                console.print(
+                    f"{index}. [yellow]SKIP[/yellow] {item.source_path.name} "
+                    f"→ {item.suggested_name} "
+                    f"[dim]reason={item.skip_reason}[/dim]"
+                )
+            else:
+                console.print(
+                    f"{index}. [green]RENAME[/green] {item.source_path.name} "
+                    f"→ {item.suggested_name}"
+                )
+
+    if report.summary.collision_count:
+        console.print("")
+        console.print(
+            "[red]Apply blocked because suggested filename collisions were found.[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    if plan.planned_count == 0:
+        console.print("")
+        console.print("[yellow]No files to rename.[/yellow]")
+        return
+
+    if not yes:
+        console.print("")
+        confirmed = typer.confirm("Apply these renames?")
+        if not confirmed:
+            console.print("[yellow]Apply cancelled.[/yellow]")
+            raise typer.Exit(code=1)
+
+    log_dir = Path(".pdf-namefix") / "logs"
+    rename_result = apply_rename_plan(plan=plan, log_dir=log_dir)
+
+    console.print("")
+    console.print("[bold]Apply result[/bold]")
+    console.print(f"- Renamed: {rename_result.renamed_count}")
+    console.print(f"- Failed: {rename_result.failed_count}")
+    console.print(f"- Log: {rename_result.log_path}")
+
+    if rename_result.failed_count:
+        raise typer.Exit(code=1)
 
 
 @app.command()
