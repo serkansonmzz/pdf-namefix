@@ -179,6 +179,54 @@ Warnings: 0
 Apply these renames? [y/N]:
 ```
 
+## Downloads Cleaner Layer
+
+Phase 7 adds PDF organization support.
+
+Organize PDFs into type-based folders:
+
+```bash
+uv run pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs
+```
+
+Copy instead of move:
+
+```bash
+uv run pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs --copy
+```
+
+Skip confirmation:
+
+```bash
+uv run pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs --yes
+```
+
+Example output folders:
+
+```text
+OrganizedPDFs/
+  invoices/
+  receipts/
+  contracts/
+  reports/
+  books/
+  courses/
+  notes/
+  papers/
+  slides/
+  manuals/
+  unknown/
+```
+
+Safety rules:
+
+- no delete
+- no overwrite
+- target exists is skipped
+- confirmation by default
+- `--copy` keeps original files
+- organize result is logged under `.pdf-namefix/logs/`
+
 ## Preview Hardening
 
 Phase 5 improves the preview command with:

@@ -128,3 +128,62 @@ class RenameResult:
     @property
     def failed_count(self) -> int:
         return sum(1 for item in self.items if item.status == "failed")
+
+
+@dataclass(frozen=True)
+class OrganizePlanItem:
+    source_path: Path
+    target_path: Path
+    document_type: DocumentType
+    mode: str
+    skipped: bool = False
+    skip_reason: str | None = None
+
+
+@dataclass(frozen=True)
+class OrganizePlan:
+    items: list[OrganizePlanItem]
+    warnings: list[ScanWarning]
+
+    @property
+    def planned_count(self) -> int:
+        return sum(1 for item in self.items if not item.skipped)
+
+    @property
+    def skipped_count(self) -> int:
+        return sum(1 for item in self.items if item.skipped)
+
+    @property
+    def has_skipped_items(self) -> bool:
+        return self.skipped_count > 0
+
+
+@dataclass(frozen=True)
+class OrganizeResultItem:
+    source_path: Path
+    target_path: Path
+    status: str
+    mode: str
+    error: str | None = None
+
+
+@dataclass(frozen=True)
+class OrganizeResult:
+    items: list[OrganizeResultItem]
+    log_path: Path | None = None
+
+    @property
+    def moved_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "moved")
+
+    @property
+    def copied_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "copied")
+
+    @property
+    def skipped_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "skipped")
+
+    @property
+    def failed_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "failed")
