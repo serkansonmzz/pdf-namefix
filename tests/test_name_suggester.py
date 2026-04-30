@@ -8,6 +8,7 @@ from pdf_namefix.name_suggester import (
     extract_date_from_name,
     slugify_filename_part,
     suggest_filename,
+    suggest_filenames,
 )
 
 
@@ -121,3 +122,34 @@ def test_suggest_filename_for_unknown_pdf():
 
     assert classified.document_type == DocumentType.UNKNOWN
     assert suggestion.suggested_name == "unknown-date_random_39281_unknown.pdf"
+
+
+def test_suggest_filenames_marks_collisions():
+    files = [
+        make_pdf_file("scan.pdf"),
+        make_pdf_file("document.pdf"),
+    ]
+    classified_files = [classify_pdf_file(file) for file in files]
+
+    suggestions = suggest_filenames(classified_files)
+
+    assert len(suggestions) == 2
+    assert all(suggestion.has_collision for suggestion in suggestions)
+    assert all(
+        suggestion.collision_group == "unknown-date_unknown_document.pdf"
+        for suggestion in suggestions
+    )
+
+
+def test_suggest_filenames_does_not_mark_unique_names_as_collisions():
+    files = [
+        make_pdf_file("rust_lifetimes_notes.pdf"),
+        make_pdf_file("clean_architecture_book.pdf"),
+    ]
+    classified_files = [classify_pdf_file(file) for file in files]
+
+    suggestions = suggest_filenames(classified_files)
+
+    assert len(suggestions) == 2
+    assert all(not suggestion.has_collision for suggestion in suggestions)
+    assert all(suggestion.collision_group is None for suggestion in suggestions)

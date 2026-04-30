@@ -7,6 +7,7 @@ from rich.console import Console
 from pdf_namefix import __version__
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.preview_report import build_preview_report
 from pdf_namefix.scanner import scan_pdf_files
 
 
@@ -53,6 +54,10 @@ def preview(
         bool,
         typer.Option("--recursive", "-r", help="Scan folders recursively."),
     ] = False,
+    verbose: Annotated[
+        bool,
+        typer.Option("--verbose", "-v", help="Show classification and suggestion reasons."),
+    ] = False,
 ) -> None:
     """
     Preview discovered PDF files and suggested filenames without touching files.
@@ -64,29 +69,51 @@ def preview(
     result = scan_pdf_files(paths=paths, recursive=recursive)
     classified_files = classify_pdf_files(result.pdf_files)
     suggestions = suggest_filenames(classified_files)
+    report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
 
-    console.print(f"PDF files found: [bold]{result.count}[/bold]")
+    console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
 
-    if suggestions:
+    if report.suggestions:
         console.print("")
-        for index, suggestion in enumerate(suggestions, start=1):
+        for index, suggestion in enumerate(report.suggestions, start=1):
             classified = suggestion.classified_pdf_file
             pdf_file = classified.pdf_file
             size_kb = pdf_file.size_bytes / 1024
+
+            collision_label = " [red][COLLISION][/red]" if suggestion.has_collision else ""
 
             console.print(
                 fr"{index}. {pdf_file.path} "
                 f"[dim]({size_kb:.1f} KB)[/dim] "
                 fr"[cyan]\[{classified.document_type.value}][/cyan] "
                 f"[dim]confidence={classified.confidence:.1f}[/dim]"
+                f"{collision_label}"
             )
             console.print(f"   → [green]{suggestion.suggested_name}[/green]")
 
-    if result.warnings:
+            if verbose:
+                console.print(f"   [dim]classification: {classified.reason}[/dim]")
+                console.print(f"   [dim]suggestion: {suggestion.reason}[/dim]")
+
+    if report.warnings:
         console.print("")
         console.print("[yellow]Warnings:[/yellow]")
-        for warning in result.warnings:
+        for warning in report.warnings:
             console.print(f"- {warning.path}: {warning.reason}")
+
+    console.print("")
+    console.print("[bold]Summary[/bold]")
+    console.print(f"- Total PDF files: {report.summary.total_files}")
+    console.print(f"- Unknown type: {report.summary.unknown_count}")
+    console.print(f"- Suggested name collisions: {report.summary.collision_count}")
+    console.print(f"- Warnings: {report.summary.warning_count}")
+
+    if report.summary.collision_count:
+        console.print("")
+        console.print(
+            "[red]Some suggestions have filename collisions. "
+            "Do not apply renames until collisions are resolved.[/red]"
+        )
 
 
 @app.command()
