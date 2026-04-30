@@ -165,3 +165,19 @@ If the target file already exists, the item is skipped.
 Reason:
 
 A file organization tool must never overwrite user files silently.
+
+## Decision 021: Phase 8 focuses on hardening, not new features
+
+Phase 8 adds edge-case tests, safer source existence checks, known limitations, and small reliability improvements.
+
+Reason:
+
+The MVP already has preview, apply, and organize. Before adding more features, the current behavior should be made safer.
+
+## Decision 022: Missing source files are skipped
+
+If a file disappears between scan and apply/organize planning, the item is skipped.
+
+Reason:
+
+Filesystem state can change between discovery and execution. The tool should not crash or produce unsafe behavior.

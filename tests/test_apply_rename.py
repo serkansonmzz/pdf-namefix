@@ -104,3 +104,18 @@ def test_apply_rename_plan_does_not_overwrite_existing_target(tmp_path: Path):
     assert result.renamed_count == 0
     assert source.exists() is True
     assert existing.exists() is True
+
+
+def test_build_rename_plan_skips_missing_source_after_scan(tmp_path: Path):
+    source = write_pdf(tmp_path / "rust_lifetimes_notes.pdf")
+
+    classified = classify_pdf_file(make_pdf_file(source))
+    suggestions = suggest_filenames([classified])
+
+    source.unlink()
+
+    plan = build_rename_plan(suggestions=suggestions, warnings=[])
+
+    assert plan.planned_count == 0
+    assert plan.skipped_count == 1
+    assert plan.items[0].skip_reason == "Source file no longer exists."

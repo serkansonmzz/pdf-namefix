@@ -285,3 +285,33 @@ def test_preview_default_hides_reasons(tmp_path):
     assert result.exit_code == 0
     assert "classification:" not in result.output
     assert "suggestion:" not in result.output
+
+
+def test_preview_empty_folder_shows_zero_summary(tmp_path):
+    result = runner.invoke(app, ["preview", str(tmp_path)])
+
+    assert result.exit_code == 0
+    assert "PDF files found: 0" in result.output
+    assert "Total PDF files: 0" in result.output
+    assert "Warnings: 0" in result.output
+
+
+def test_apply_empty_folder_does_nothing(tmp_path):
+    result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+
+    assert result.exit_code == 0
+    assert "PDF files found: 0" in result.output
+    assert "No files to rename" in result.output
+
+
+def test_organize_empty_folder_does_nothing(tmp_path):
+    out_dir = tmp_path / "organized"
+
+    result = runner.invoke(
+        app,
+        ["organize", str(tmp_path), "--out", str(out_dir), "--yes"],
+    )
+
+    assert result.exit_code == 0
+    assert "PDF files found: 0" in result.output
+    assert "No files to organize" in result.output

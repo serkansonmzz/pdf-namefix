@@ -143,3 +143,23 @@ def test_apply_organize_plan_does_not_overwrite_existing_target(tmp_path: Path):
     assert result.skipped_count == 1
     assert source.exists() is True
     assert existing.exists() is True
+
+
+def test_build_organize_plan_skips_missing_source_after_scan(tmp_path: Path):
+    source = write_pdf(tmp_path / "clean_architecture_book.pdf")
+    out_dir = tmp_path / "organized"
+
+    classified = classify_pdf_file(make_pdf_file(source))
+
+    source.unlink()
+
+    plan = build_organize_plan(
+        classified_files=[classified],
+        warnings=[],
+        out_dir=out_dir,
+        copy=False,
+    )
+
+    assert plan.planned_count == 0
+    assert plan.skipped_count == 1
+    assert plan.items[0].skip_reason == "Source file no longer exists."
