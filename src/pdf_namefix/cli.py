@@ -8,6 +8,7 @@ from pdf_namefix import __version__
 from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
 from pdf_namefix.preview_report import build_preview_report
 from pdf_namefix.scanner import scan_pdf_files
 
@@ -217,24 +218,79 @@ def organize(
         bool,
         typer.Option("--copy", help="Copy files instead of moving them."),
     ] = False,
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Organize files without interactive confirmation."),
+    ] = False,
 ) -> None:
     """
     Organize PDF files into type-based folders.
-
-    This is only a skeleton in Phase 1.
     """
-    console.print("[yellow]Organize mode is not implemented yet.[/yellow]")
-    console.print("Phase 1 only defines the CLI shape.")
+    console.print("[bold]Organize mode[/bold]")
+    console.print("Preparing organize plan...")
+    console.print("")
 
-    for path in paths:
-        console.print(f"- organize target: {path}")
+    result = scan_pdf_files(paths=paths, recursive=recursive)
+    classified_files = classify_pdf_files(result.pdf_files)
+    plan = build_organize_plan(
+        classified_files=classified_files,
+        warnings=result.warnings,
+        out_dir=out,
+        copy=copy,
+    )
 
-    console.print(f"Output folder: {out}")
+    mode_label = "copy" if copy else "move"
 
-    if recursive:
-        console.print("Recursive scan: enabled")
+    console.print(f"PDF files found: [bold]{len(classified_files)}[/bold]")
+    console.print(f"Mode: [bold]{mode_label}[/bold]")
+    console.print(f"Planned operations: [bold]{plan.planned_count}[/bold]")
+    console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
+    console.print(f"Warnings: [bold]{len(plan.warnings)}[/bold]")
+    console.print("")
 
-    if copy:
-        console.print("Mode: copy")
-    else:
-        console.print("Mode: move")
+    if plan.items:
+        for index, item in enumerate(plan.items, start=1):
+            if item.skipped:
+                console.print(
+                    f"{index}. [yellow]SKIP[/yellow] {item.source_path.name} "
+                    f"→ {item.target_path} "
+                    f"[dim]reason={item.skip_reason}[/dim]"
+                )
+            else:
+                action = "COPY" if copy else "MOVE"
+                console.print(
+                    f"{index}. [green]{action}[/green] {item.source_path.name} "
+                    f"→ {item.target_path}"
+                )
+
+    if plan.warnings:
+        console.print("")
+        console.print("[yellow]Warnings:[/yellow]")
+        for warning in plan.warnings:
+            console.print(f"- {warning.path}: {warning.reason}")
+
+    if plan.planned_count == 0:
+        console.print("")
+        console.print("[yellow]No files to organize.[/yellow]")
+        return
+
+    if not yes:
+        console.print("")
+        confirmed = typer.confirm("Apply this organize plan?")
+        if not confirmed:
+            console.print("[yellow]Organize cancelled.[/yellow]")
+            raise typer.Exit(code=1)
+
+    log_dir = Path(".pdf-namefix") / "logs"
+    organize_result = apply_organize_plan(plan=plan, log_dir=log_dir)
+
+    console.print("")
+    console.print("[bold]Organize result[/bold]")
+    console.print(f"- Moved: {organize_result.moved_count}")
+    console.print(f"- Copied: {organize_result.copied_count}")
+    console.print(f"- Skipped: {organize_result.skipped_count}")
+    console.print(f"- Failed: {organize_result.failed_count}")
+    console.print(f"- Log: {organize_result.log_path}")
+
+    if organize_result.failed_count:
+        raise typer.Exit(code=1)

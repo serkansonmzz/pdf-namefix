@@ -143,12 +143,98 @@ def test_apply_cancelled_without_confirmation(tmp_path):
     assert target.exists() is False
 
 
-def test_organize_is_skeleton_only():
-    result = runner.invoke(app, ["organize", "/tmp", "--out", "/tmp/out"])
+def test_organize_moves_file_with_yes(tmp_path):
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--yes"],
+    )
+
+    target = out_dir / "books" / "clean_architecture_book.pdf"
 
     assert result.exit_code == 0
-    assert "Organize mode is not implemented yet" in result.output
-    assert "Output folder: /tmp/out" in result.output
+    assert "Organize mode" in result.output
+    assert "Mode: move" in result.output
+    assert "Planned operations: 1" in result.output
+    assert "Moved: 1" in result.output
+    assert pdf.exists() is False
+    assert target.exists() is True
+
+
+def test_organize_copies_file_with_copy_flag(tmp_path):
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--copy", "--yes"],
+    )
+
+    target = out_dir / "books" / "clean_architecture_book.pdf"
+
+    assert result.exit_code == 0
+    assert "Mode: copy" in result.output
+    assert "Copied: 1" in result.output
+    assert pdf.exists() is True
+    assert target.exists() is True
+
+
+def test_organize_cancelled_without_confirmation(tmp_path):
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir)],
+        input="n\n",
+    )
+
+    target = out_dir / "books" / "clean_architecture_book.pdf"
+
+    assert result.exit_code == 1
+    assert "Organize cancelled" in result.output
+    assert pdf.exists() is True
+    assert target.exists() is False
+
+
+def test_organize_skips_existing_target(tmp_path):
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    target_dir = out_dir / "books"
+
+    source_dir.mkdir()
+    target_dir.mkdir(parents=True)
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    existing = target_dir / "clean_architecture_book.pdf"
+    existing.write_text("existing", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--yes"],
+    )
+
+    assert result.exit_code == 0
+    assert "SKIP" in result.output
+    assert "Target file already exists" in result.output
+    assert pdf.exists() is True
+    assert existing.exists() is True
 
 
 def test_preview_shows_summary(tmp_path):

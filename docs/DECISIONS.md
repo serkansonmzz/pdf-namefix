@@ -141,3 +141,27 @@ The apply command requires interactive confirmation unless `--yes` is passed.
 Reason:
 
 Preview-first and confirmation-first behavior reduces accidental renames.
+
+## Decision 018: Downloads Cleaner stays PDF-focused
+
+The organize command only organizes discovered PDF files.
+
+Reason:
+
+The project should not become a general-purpose file cleaner in v0.1.
+
+## Decision 019: Organize supports both move and copy
+
+The default mode is move, while `--copy` keeps original files.
+
+Reason:
+
+Move is useful for cleanup, but copy is safer for first-time usage and testing.
+
+## Decision 020: Organize never overwrites target files
+
+If the target file already exists, the item is skipped.
+
+Reason:
+
+A file organization tool must never overwrite user files silently.
