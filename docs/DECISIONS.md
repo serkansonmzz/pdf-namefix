@@ -181,3 +181,19 @@ If a file disappears between scan and apply/organize planning, the item is skipp
 Reason:
 
 Filesystem state can change between discovery and execution. The tool should not crash or produce unsafe behavior.
+
+## Decision 023: Phase 9 focuses on user-facing documentation
+
+Phase 9 improves README, demo instructions, first-time usage guidance, and GitHub presentation.
+
+Reason:
+
+The tool already has core MVP behavior. Before release, users need to understand how to install, run, and safely use it.
+
+## Decision 024: First-time users should prefer preview and copy mode
+
+Documentation recommends preview first and organize with `--copy` first.
+
+Reason:
+
+The safest first experience should be non-destructive and reversible by simply deleting copied output.

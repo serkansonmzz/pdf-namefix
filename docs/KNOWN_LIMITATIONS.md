@@ -29,3 +29,19 @@ The MVP intentionally keeps these guarantees:
 - `--yes` does not bypass safety checks
 - collision situations are not silently applied
 - all apply/organize executions write JSONL logs
+
+## Recommended first-time usage
+
+Use preview first:
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+```
+
+For organize, prefer copy mode first:
+
+```bash
+uv run pdf-namefix organize ~/Downloads \
+  --out ~/Documents/OrganizedPDFs \
+  --copy
+```
