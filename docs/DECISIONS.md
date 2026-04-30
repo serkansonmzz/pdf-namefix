@@ -65,3 +65,31 @@ Reason:
 This keeps the first classification layer local, predictable, testable, and AI-free.
 
 PDF content extraction, metadata parsing, OCR, and AI-assisted classification are future improvements.
+
+## Decision 009: Phase 4 suggestions are preview-only
+
+Filename suggestions will be shown in preview mode first.
+
+Reason:
+
+Renaming files is risky. Users should see proposed names before any apply/rename command exists.
+
+## Decision 010: Unknown date is explicit
+
+If no date can be extracted from the filename, the suggestion will use `unknown-date`.
+
+Reason:
+
+A missing date should be visible instead of silently inventing a date.
+
+## Decision 011: Suggested names are conservative
+
+Suggested names are built from:
+
+- extracted filename date,
+- cleaned filename title,
+- classified document type.
+
+Reason:
+
+v0.1 should avoid AI/OCR complexity and keep naming deterministic.

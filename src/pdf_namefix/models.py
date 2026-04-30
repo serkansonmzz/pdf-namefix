@@ -51,6 +51,13 @@ class ClassifiedPdfFile:
 
 
 @dataclass(frozen=True)
+class FilenameSuggestion:
+    classified_pdf_file: ClassifiedPdfFile
+    suggested_name: str
+    reason: str
+
+
+@dataclass(frozen=True)
 class ScanWarning:
     path: Path
     reason: str
