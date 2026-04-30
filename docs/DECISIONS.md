@@ -117,3 +117,27 @@ Preview supports `--verbose` to show classification and suggestion reasons.
 Reason:
 
 The default output should stay readable, but users and developers need a way to inspect why a suggestion was produced.
+
+## Decision 015: Apply is blocked when suggested filename collisions exist
+
+If two or more files produce the same suggested filename, apply exits without renaming files.
+
+Reason:
+
+Collision resolution should be explicit. The first safe apply flow should never risk overwriting or ambiguous renames.
+
+## Decision 016: Apply writes a rename log
+
+Every apply run writes a JSONL log under `.pdf-namefix/logs/`.
+
+Reason:
+
+Renaming files changes the local filesystem. Users need an audit trail for what happened.
+
+## Decision 017: Apply asks for confirmation by default
+
+The apply command requires interactive confirmation unless `--yes` is passed.
+
+Reason:
+
+Preview-first and confirmation-first behavior reduces accidental renames.

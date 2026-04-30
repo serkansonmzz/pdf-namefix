@@ -99,12 +99,48 @@ def test_preview_missing_path_shows_warning(tmp_path):
     assert "does not exist" in result.output
 
 
-def test_apply_is_skeleton_only():
-    result = runner.invoke(app, ["apply", "/tmp"])
+def test_apply_renames_file_with_yes(tmp_path):
+    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+
+    target = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
 
     assert result.exit_code == 0
-    assert "Apply mode is not implemented yet" in result.output
-    assert "Phase 1 only defines the CLI shape" in result.output
+    assert "Apply mode" in result.output
+    assert "Planned renames: 1" in result.output
+    assert "Renamed: 1" in result.output
+    assert pdf.exists() is False
+    assert target.exists() is True
+
+
+def test_apply_blocks_collision(tmp_path):
+    scan = tmp_path / "scan.pdf"
+    document = tmp_path / "document.pdf"
+    scan.write_text("test", encoding="utf-8")
+    document.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+
+    assert result.exit_code == 1
+    assert "Apply blocked because suggested filename collisions were found" in result.output
+    assert scan.exists() is True
+    assert document.exists() is True
+
+
+def test_apply_cancelled_without_confirmation(tmp_path):
+    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path)], input="n\n")
+
+    target = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+
+    assert result.exit_code == 1
+    assert "Apply cancelled" in result.output
+    assert pdf.exists() is True
+    assert target.exists() is False
 
 
 def test_organize_is_skeleton_only():

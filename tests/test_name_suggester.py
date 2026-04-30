@@ -6,6 +6,7 @@ from pdf_namefix.name_suggester import (
     build_title_slug,
     clamp_filename,
     extract_date_from_name,
+    has_any_collision,
     slugify_filename_part,
     suggest_filename,
     suggest_filenames,
@@ -153,3 +154,25 @@ def test_suggest_filenames_does_not_mark_unique_names_as_collisions():
     assert len(suggestions) == 2
     assert all(not suggestion.has_collision for suggestion in suggestions)
     assert all(suggestion.collision_group is None for suggestion in suggestions)
+
+
+def test_has_any_collision_returns_true_for_collisions():
+    files = [
+        make_pdf_file("scan.pdf"),
+        make_pdf_file("document.pdf"),
+    ]
+    classified_files = [classify_pdf_file(file) for file in files]
+    suggestions = suggest_filenames(classified_files)
+
+    assert has_any_collision(suggestions) is True
+
+
+def test_has_any_collision_returns_false_for_unique_suggestions():
+    files = [
+        make_pdf_file("rust_lifetimes_notes.pdf"),
+        make_pdf_file("clean_architecture_book.pdf"),
+    ]
+    classified_files = [classify_pdf_file(file) for file in files]
+    suggestions = suggest_filenames(classified_files)
+
+    assert has_any_collision(suggestions) is False

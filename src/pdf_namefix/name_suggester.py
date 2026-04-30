@@ -57,6 +57,8 @@ def strip_date_patterns(text: str) -> str:
     for pattern in DATE_PATTERNS:
         cleaned = pattern.sub(" ", cleaned)
 
+    cleaned = re.sub(r"unknown[-_. ]date", " ", cleaned, flags=re.IGNORECASE)
+
     return cleaned
 
 
@@ -161,3 +163,7 @@ def suggest_filenames(
     ]
 
     return mark_collisions(suggestions)
+
+
+def has_any_collision(suggestions: list[FilenameSuggestion]) -> bool:
+    return any(suggestion.has_collision for suggestion in suggestions)

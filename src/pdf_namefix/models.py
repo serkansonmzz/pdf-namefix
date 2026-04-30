@@ -77,3 +77,54 @@ class ScanResult:
     @property
     def has_warnings(self) -> bool:
         return bool(self.warnings)
+
+
+@dataclass(frozen=True)
+class RenamePlanItem:
+    source_path: Path
+    target_path: Path
+    original_name: str
+    suggested_name: str
+    document_type: DocumentType
+    skipped: bool = False
+    skip_reason: str | None = None
+
+
+@dataclass(frozen=True)
+class RenamePlan:
+    items: list[RenamePlanItem]
+    warnings: list[ScanWarning]
+
+    @property
+    def planned_count(self) -> int:
+        return sum(1 for item in self.items if not item.skipped)
+
+    @property
+    def skipped_count(self) -> int:
+        return sum(1 for item in self.items if item.skipped)
+
+    @property
+    def has_skipped_items(self) -> bool:
+        return self.skipped_count > 0
+
+
+@dataclass(frozen=True)
+class RenameResultItem:
+    source_path: Path
+    target_path: Path
+    status: str
+    error: str | None = None
+
+
+@dataclass(frozen=True)
+class RenameResult:
+    items: list[RenameResultItem]
+    log_path: Path | None = None
+
+    @property
+    def renamed_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "renamed")
+
+    @property
+    def failed_count(self) -> int:
+        return sum(1 for item in self.items if item.status == "failed")

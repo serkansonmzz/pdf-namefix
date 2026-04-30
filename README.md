@@ -130,6 +130,55 @@ PDF files found: 3
 
 Phase 4 still does not rename, move, copy, or delete files.
 
+## Safe Apply / Rename Flow
+
+Phase 6 adds safe rename support.
+
+Preview first:
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+```
+
+Apply with confirmation:
+
+```bash
+uv run pdf-namefix apply ~/Downloads
+```
+
+Apply without interactive confirmation:
+
+```bash
+uv run pdf-namefix apply ~/Downloads --yes
+```
+
+Safety rules:
+
+- no overwrite
+- no delete
+- collision blocks apply
+- existing target filename is skipped
+- unchanged filenames are skipped
+- rename result is logged under `.pdf-namefix/logs/`
+- preview remains non-destructive
+
+Example:
+
+```text
+Apply mode
+Preparing safe rename plan...
+
+PDF files found: 2
+Planned renames: 1
+Skipped items: 1
+Warnings: 0
+
+1. RENAME rust_lifetimes_notes.pdf → unknown-date_rust_lifetimes_notes.pdf
+2. SKIP scan.pdf → unknown-date_unknown_document.pdf reason=Target filename already exists.
+
+Apply these renames? [y/N]:
+```
+
 ## Preview Hardening
 
 Phase 5 improves the preview command with:
