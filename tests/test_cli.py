@@ -25,7 +25,7 @@ def test_version_command():
 
 
 def test_preview_accepts_single_path(tmp_path):
-    pdf = tmp_path / "sample_invoice.pdf"
+    pdf = tmp_path / "sample_invoice_2026-04-29.pdf"
     pdf.write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["preview", str(tmp_path)])
@@ -36,6 +36,7 @@ def test_preview_accepts_single_path(tmp_path):
     assert "PDF files found: 1" in result.output
     assert "sample_invoice" in result.output
     assert "invoice" in result.output
+    assert "2026-04-29_sample_invoice.pdf" in result.output
 
 
 def test_preview_accepts_multiple_paths(tmp_path):
@@ -55,6 +56,8 @@ def test_preview_accepts_multiple_paths(tmp_path):
     assert "two_book" in result.output
     assert "invoice" in result.output
     assert "book" in result.output
+    assert "unknown-date_one_invoice.pdf" in result.output
+    assert "unknown-date_two_book.pdf" in result.output
 
 
 def test_preview_recursive_flag(tmp_path):
@@ -69,6 +72,7 @@ def test_preview_recursive_flag(tmp_path):
     assert "inside" in result.output
     assert "slide" in result.output
     assert "confidence=0.9" in result.output
+    assert "unknown-date_inside_slides.pdf" in result.output
 
 
 def test_preview_unknown_file_type(tmp_path):
@@ -81,6 +85,7 @@ def test_preview_unknown_file_type(tmp_path):
     assert "PDF files found: 1" in result.output
     assert "random_39281" in result.output
     assert "unknown" in result.output
+    assert "unknown-date_random_39281_unknown.pdf" in result.output
 
 
 def test_preview_missing_path_shows_warning(tmp_path):

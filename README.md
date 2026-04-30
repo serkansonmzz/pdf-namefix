@@ -101,6 +101,35 @@ PDF files found: 3
 Phase 3 does not inspect PDF content yet.  
 Classification is based on filenames only.
 
+## Filename Suggestions
+
+Phase 4 adds safe filename suggestions.
+
+The tool now scans PDFs, classifies them by filename, and suggests cleaner names without renaming anything.
+
+Example:
+
+```bash
+uv run pdf-namefix preview ~/Downloads
+```
+
+Possible output:
+
+```text
+PDF files found: 3
+
+1. /Users/me/Downloads/rust_lifetimes_notes.pdf (120.0 KB) [notes] confidence=0.9
+   → unknown-date_rust_lifetimes_notes.pdf
+
+2. /Users/me/Downloads/clean_architecture_book.pdf (5.2 MB) [book] confidence=0.9
+   → unknown-date_clean_architecture_book.pdf
+
+3. /Users/me/Downloads/turkcell_fatura_2026-04-29.pdf (90.0 KB) [invoice] confidence=0.9
+   → 2026-04-29_turkcell_fatura_invoice.pdf
+```
+
+Phase 4 still does not rename, move, copy, or delete files.
+
 ## CLI Preview
 
 Phase 1 introduces the initial CLI skeleton.
