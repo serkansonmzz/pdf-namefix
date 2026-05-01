@@ -283,17 +283,27 @@ uv run pdf-namefix --help
 - `docs/KNOWN_LIMITATIONS.md`
 - `docs/DEMO.md`
 - `docs/FIRST_TIME_USER_GUIDE.md`
+- `docs/RELEASE_CHECKLIST.md`
+- `docs/RELEASE_NOTES_v0.1.0.md`
 
 ## Status
 
-Current stage:
+Current release:
 
 ```text
-MVP hardening / README and demo polish
+v0.1.0 MVP
 ```
+
+This release includes:
+
+- preview
+- safe apply / rename
+- PDF organize layer
+- edge-case hardening
+- README and demo docs
 
 Next stage:
 
 ```text
-v0.1 Release Candidate
+v0.2 Roadmap (Content extraction / Metadata)
 ```
