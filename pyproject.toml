@@ -1,12 +1,22 @@
 [project]
 name = "pdf-namefix"
 version = "0.1.0"
-description = "Add your description here"
+description = "A local-first CLI tool for previewing, safely renaming, and organizing messy PDF files."
 readme = "README.md"
-authors = [
-    { name = "serkansonmzz", email = "serkansonmzz@gmail.com" }
-]
 requires-python = ">=3.12"
+license = { file = "LICENSE" }
+authors = [
+    { name = "Serkan Sönmez" }
+]
+keywords = ["pdf", "cli", "productivity", "file-organization", "typer"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: End Users/Desktop",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Utilities",
+]
 dependencies = [
     "rich>=15.0.0",
     "typer>=0.25.0",
@@ -14,6 +24,7 @@ dependencies = [
 
 [project.scripts]
 pdf-namefix = "pdf_namefix.cli:app"
+
 [build-system]
 requires = ["uv_build>=0.11.2,<0.12.0"]
 build-backend = "uv_build"
