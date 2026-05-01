@@ -197,3 +197,19 @@ Documentation recommends preview first and organize with `--copy` first.
 Reason:
 
 The safest first experience should be non-destructive and reversible by simply deleting copied output.
+
+## Decision 025: v0.1.0 supports GitHub-based pipx installation first
+
+`pdf-namefix` will first support installation from GitHub using `pipx`.
+
+Reason:
+
+Publishing to PyPI is useful, but GitHub-based pipx installation is enough for the first release and avoids premature package registry work.
+
+## Decision 026: PyPI publishing is postponed
+
+PyPI publishing is not part of v0.1.0.
+
+Reason:
+
+The package should first prove its installability and CLI behavior via GitHub releases and pipx.

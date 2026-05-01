@@ -261,6 +261,29 @@ See:
 docs/KNOWN_LIMITATIONS.md
 ```
 
+## Install as a CLI
+
+Recommended install method:
+
+```bash
+pipx install "git+https://github.com/serkansonmzz/pdf-namefix.git@v0.1.0"
+```
+
+Then run:
+
+```bash
+pdf-namefix --version
+pdf-namefix preview ~/Downloads
+```
+
+Uninstall:
+
+```bash
+pipx uninstall pdf-namefix
+```
+
+For development usage, use `uv run` inside the repository.
+
 ## Development
 
 Run tests:
@@ -285,6 +308,8 @@ uv run pdf-namefix --help
 - `docs/FIRST_TIME_USER_GUIDE.md`
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/RELEASE_NOTES_v0.1.0.md`
+- `docs/INSTALL.md`
+- `docs/PACKAGING.md`
 
 ## Status
 

@@ -41,6 +41,18 @@
 - [ ] `docs/KNOWN_LIMITATIONS.md` exists
 - [ ] `docs/RELEASE_NOTES_v0.1.0.md` exists
 
+## Packaging
+
+- [ ] `uv build` succeeds
+- [ ] `dist/` contains wheel and source distribution
+- [ ] Local wheel install works
+- [ ] `pipx install .` works
+- [ ] `pdf-namefix --version` works after pipx install
+- [ ] `pdf-namefix --help` works after pipx install
+- [ ] README includes pipx install instructions
+- [ ] `docs/INSTALL.md` exists
+- [ ] `docs/PACKAGING.md` exists
+
 ## GitHub Release
 
 - [ ] Release branch is merged into `main`
