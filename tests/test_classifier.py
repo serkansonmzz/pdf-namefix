@@ -76,7 +76,7 @@ def test_classifies_turkish_education_keyword_as_course():
 
 
 def test_classifies_lesson():
-    classified = classify_pdf_file(make_pdf_file("english_lesson_01.pdf"))
+    classified = classify_pdf_file(make_pdf_file("math_lesson_01.pdf"))
 
     assert classified.document_type == DocumentType.LESSON
 
@@ -118,7 +118,7 @@ def test_classifies_transcript():
 
 
 def test_classifies_worksheet():
-    classified = classify_pdf_file(make_pdf_file("english_exercises_worksheet.pdf"))
+    classified = classify_pdf_file(make_pdf_file("math_exercises_worksheet.pdf"))
 
     assert classified.document_type == DocumentType.WORKSHEET
 
@@ -161,3 +161,60 @@ def test_classify_pdf_files_keeps_order():
         DocumentType.INVOICE,
         DocumentType.BOOK,
     ]
+
+
+def test_classifies_lebenslauf_as_cv():
+    classified = classify_pdf_file(make_pdf_file("Lebenslauf Durdu Eren.pdf"))
+
+    assert classified.document_type == DocumentType.CV
+
+
+def test_classifies_vize_form_as_visa():
+    classified = classify_pdf_file(make_pdf_file("vize_form_ornegi.pdf"))
+
+    assert classified.document_type == DocumentType.VISA
+
+
+def test_classifies_ogrenci_belgesi_as_student_document():
+    classified = classify_pdf_file(make_pdf_file("bilgisayar_programciligi_ogrenci_belgesi.pdf"))
+
+    assert classified.document_type == DocumentType.STUDENT_DOCUMENT
+
+
+def test_classifies_sinav_giris_belgesi_as_exam():
+    classified = classify_pdf_file(make_pdf_file("Sinav Giris Belgesi-yeni-2026.pdf"))
+
+    assert classified.document_type == DocumentType.EXAM
+
+
+def test_classifies_enabiz_tahlilleri_as_medical():
+    classified = classify_pdf_file(make_pdf_file("Enabiz-Tahlilleri.pdf"))
+
+    assert classified.document_type == DocumentType.MEDICAL
+
+
+def test_classifies_borc_detay_as_payment():
+    classified = classify_pdf_file(make_pdf_file("Borc Detay Listesi_14-07-2025 13_48.pdf"))
+
+    assert classified.document_type == DocumentType.PAYMENT
+
+
+def test_classifies_oxford_dictionary_as_reference():
+    classified = classify_pdf_file(make_pdf_file("Oxford_Collocations_Dictionary.pdf"))
+
+    assert classified.document_type == DocumentType.REFERENCE
+
+
+def test_classifies_grammar_book_as_language_learning():
+    classified = classify_pdf_file(make_pdf_file("Essential Grammar in Use 4th Edition.pdf"))
+
+    assert classified.document_type in {
+        DocumentType.LANGUAGE_LEARNING,
+        DocumentType.BOOK,
+    }
+
+
+def test_classifies_whitepaper():
+    classified = classify_pdf_file(make_pdf_file("Newwhitepaper_Agents2.pdf"))
+
+    assert classified.document_type == DocumentType.WHITEPAPER

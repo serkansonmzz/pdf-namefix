@@ -3,8 +3,13 @@ from pathlib import Path
 from pdf_namefix.classifier import classify_pdf_file
 from pdf_namefix.models import PdfFile, ScanWarning
 from pdf_namefix.name_suggester import suggest_filenames
-from pdf_namefix.preview_report import build_preview_report, build_preview_summary
-
+from pdf_namefix.preview_report import (
+    build_preview_report,
+    build_preview_summary,
+    filter_suggestions_by_type,
+    limit_suggestions,
+)
+from pdf_namefix.models import DocumentType
 
 def make_pdf_file(name: str) -> PdfFile:
     return PdfFile(
@@ -44,3 +49,28 @@ def test_build_preview_report_keeps_suggestions_and_warnings():
     assert report.warnings == warnings
     assert report.summary.total_files == 1
     assert report.summary.warning_count == 1
+
+
+def test_filter_suggestions_by_type():
+    classified_files = [
+        classify_pdf_file(make_pdf_file("random_39281.pdf")),
+        classify_pdf_file(make_pdf_file("Transcript - Advanced Episode.pdf")),
+    ]
+    suggestions = suggest_filenames(classified_files)
+
+    filtered = filter_suggestions_by_type(suggestions, only_type="unknown")
+
+    assert len(filtered) == 1
+    assert filtered[0].classified_pdf_file.document_type == DocumentType.UNKNOWN
+
+
+def test_limit_suggestions():
+    classified_files = [
+        classify_pdf_file(make_pdf_file("one_book.pdf")),
+        classify_pdf_file(make_pdf_file("two_book.pdf")),
+    ]
+    suggestions = suggest_filenames(classified_files)
+
+    limited = limit_suggestions(suggestions, limit=1)
+
+    assert len(limited) == 1

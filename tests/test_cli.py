@@ -115,13 +115,39 @@ def test_apply_renames_file_with_yes(tmp_path):
     assert target.exists() is True
 
 
+def test_apply_skips_unknown_by_default(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+
+    assert result.exit_code == 0
+    assert "Planned renames: 0" in result.output
+    assert "Skipped items: 1" in result.output
+    assert pdf.exists() is True
+
+
+def test_apply_include_unknown_renames_unknown(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path), "--include-unknown", "--yes"])
+
+    target = tmp_path / "unknown-date_random_39281_unknown.pdf"
+
+    assert result.exit_code == 0
+    assert "Planned renames: 1" in result.output
+    assert pdf.exists() is False
+    assert target.exists() is True
+
+
 def test_apply_resolves_collision_with_suffixes(tmp_path):
     scan = tmp_path / "scan.pdf"
     document = tmp_path / "document.pdf"
     scan.write_text("test", encoding="utf-8")
     document.write_text("test", encoding="utf-8")
 
-    result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+    result = runner.invoke(app, ["apply", str(tmp_path), "--include-unknown", "--min-confidence", "0.0", "--yes"])
 
     first = tmp_path / "unknown-date_unknown_document.pdf"
     second = tmp_path / "unknown-date_unknown_document_2.pdf"
@@ -256,6 +282,41 @@ def test_preview_shows_summary(tmp_path):
     assert "Warnings: 0" in result.output
 
 
+def test_preview_summary_only_hides_file_details(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--summary-only"])
+
+    assert result.exit_code == 0
+    assert "Summary" in result.output
+    assert "random_39281.pdf" not in result.output
+
+
+def test_preview_only_unknown_filters_output(tmp_path):
+    unknown = tmp_path / "random_39281.pdf"
+    transcript = tmp_path / "Transcript - Advanced Episode.pdf"
+    unknown.write_text("test", encoding="utf-8")
+    transcript.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--only", "unknown"])
+
+    assert result.exit_code == 0
+    assert "random_39281.pdf" in result.output
+    assert "Transcript - Advanced Episode.pdf" not in result.output
+
+
+def test_preview_limit_limits_displayed_items(tmp_path):
+    for index in range(5):
+        pdf = tmp_path / f"random_{index}.pdf"
+        pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--limit", "2"])
+
+    assert result.exit_code == 0
+    assert result.output.count("→") == 2
+
+
 def test_preview_marks_filename_collisions(tmp_path):
     scan = tmp_path / "scan.pdf"
     document = tmp_path / "document.pdf"
@@ -310,7 +371,7 @@ def test_apply_empty_folder_does_nothing(tmp_path):
 
 
 def test_organize_empty_folder_does_nothing(tmp_path):
-    out_dir = tmp_path / "organized"
+    out_dir = tmp_path.parent / "organized"
 
     result = runner.invoke(
         app,
@@ -399,3 +460,21 @@ def test_undo_last_skips_organize_copy(tmp_path, monkeypatch):
     assert "No undo operations to apply" in undo_result.output
     assert pdf.exists() is True
     assert copied.exists() is True
+
+
+def test_organize_blocks_output_inside_input_by_default(tmp_path):
+    source_dir = tmp_path / "source"
+    out_dir = source_dir / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--copy", "--yes"],
+    )
+
+    assert result.exit_code == 1
+    assert "Output folder is inside an input folder" in result.output
+    assert pdf.exists() is True

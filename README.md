@@ -48,6 +48,15 @@ unknown-date_rust_lifetimes_notes.pdf
 unknown-date_clean_architecture_book.pdf
 ```
 
+## Real-World Usage Notes
+
+`pdf-namefix` is hardened for real-world file system chaos:
+
+- **Unknown Skip**: Files with `unknown` type or low confidence are skipped by default during apply to prevent renaming your important documents into `unknown-date_unknown_document.pdf`. Use `--include-unknown` to override.
+- **Preview Filtering**: Large folders can be overwhelming. Use `--only book` or `--limit 10` or `--summary-only` to filter the preview output.
+- **Disk Safety**: When running `organize --copy`, `pdf-namefix` checks if you have enough disk space before starting to prevent half-copied, broken states.
+- **Path Safety**: Organize blocks you from accidentally nesting the `--out` folder inside the scanned input folder to prevent recursive chaos. (Override with `--allow-nested-output`).
+
 ## Current MVP Features
 
 ```text
