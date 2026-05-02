@@ -47,3 +47,27 @@ def build_preview_report(
         warnings=warnings,
         summary=build_preview_summary(suggestions, warnings),
     )
+
+
+def filter_suggestions_by_type(
+    suggestions: list[FilenameSuggestion],
+    only_type: str | None = None,
+) -> list[FilenameSuggestion]:
+    if only_type is None:
+        return suggestions
+
+    return [
+        suggestion
+        for suggestion in suggestions
+        if suggestion.classified_pdf_file.document_type.value == only_type
+    ]
+
+
+def limit_suggestions(
+    suggestions: list[FilenameSuggestion],
+    limit: int | None = None,
+) -> list[FilenameSuggestion]:
+    if limit is None:
+        return suggestions
+
+    return suggestions[:limit]

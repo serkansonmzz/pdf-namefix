@@ -16,6 +16,8 @@
 - Recursive scan can be expensive on large folders.
 - Permission-denied behavior is best-effort and platform-dependent.
 - Log files are written locally under `.pdf-namefix/logs/`.
+- High-volume nested folders can still cause long preview outputs (use `--limit` or `--only`).
+- Disk space check for `organize --copy` is a basic approximation and does not account for filesystem-specific block overheads.
 
 ## Safety guarantees
 

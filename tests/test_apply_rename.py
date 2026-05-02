@@ -32,7 +32,12 @@ def test_build_rename_plan_allows_resolved_collisions(tmp_path: Path):
     ]
     suggestions = suggest_filenames(classified_files)
 
-    plan = build_rename_plan(suggestions=suggestions, warnings=[])
+    plan = build_rename_plan(
+        suggestions=suggestions,
+        warnings=[],
+        include_unknown=True,
+        min_confidence=0.0,
+    )
 
     assert plan.planned_count == 2
     assert plan.skipped_count == 0
@@ -136,3 +141,32 @@ def test_apply_rename_log_includes_operation(tmp_path: Path):
     log_text = result.log_path.read_text(encoding="utf-8")
 
     assert '"operation": "rename"' in log_text
+
+
+def test_build_rename_plan_skips_unknown_by_default(tmp_path: Path):
+    source = write_pdf(tmp_path / "random_39281.pdf")
+
+    classified = classify_pdf_file(make_pdf_file(source))
+    suggestions = suggest_filenames([classified])
+
+    plan = build_rename_plan(suggestions=suggestions, warnings=[])
+
+    assert plan.planned_count == 0
+    assert plan.skipped_count == 1
+    assert "Low confidence or unknown type" in plan.items[0].skip_reason
+
+
+def test_build_rename_plan_can_include_unknown_when_requested(tmp_path: Path):
+    source = write_pdf(tmp_path / "random_39281.pdf")
+
+    classified = classify_pdf_file(make_pdf_file(source))
+    suggestions = suggest_filenames([classified])
+
+    plan = build_rename_plan(
+        suggestions=suggestions,
+        warnings=[],
+        include_unknown=True,
+    )
+
+    assert plan.planned_count == 1
+    assert plan.skipped_count == 0

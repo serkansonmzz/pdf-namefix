@@ -231,3 +231,35 @@ Copy operations are skipped by default.
 Reason:
 
 Undoing a copy would require deleting the copied file, which conflicts with the current no-delete safety model.
+
+## Decision 029: Unknown files are skipped by default during apply
+
+Files classified as `unknown` or those below a confidence threshold (0.7) are not renamed by default.
+
+Reason:
+
+Real-world usage showed high "unknown" rates. Renaming important, unclassifiable documents to `unknown-date_unknown_document.pdf` is undesirable.
+
+## Decision 030: Preview supports filtering and limits
+
+Preview supports `--only`, `--limit`, and `--summary-only`.
+
+Reason:
+
+Real-world folders contain hundreds of PDFs. Long terminal outputs become unreadable. Users need a way to filter noise.
+
+## Decision 031: Organize copy checks disk space
+
+Before running a copy operation, `pdf-namefix` checks if enough free space exists on the target disk.
+
+Reason:
+
+Copying hundreds of large PDFs can exhaust disk space, causing mid-operation failures. Early validation is safer.
+
+## Decision 032: Organize blocks nested outputs
+
+`organize` will block an `--out` directory if it is a child of the input folder unless `--allow-nested-output` is given.
+
+Reason:
+
+Placing the organized folder inside the scanned folder can cause recursive scanning loops or confusion in subsequent runs.

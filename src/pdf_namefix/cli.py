@@ -9,7 +9,16 @@ from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
-from pdf_namefix.preview_report import build_preview_report
+from pdf_namefix.preview_report import (
+    build_preview_report,
+    filter_suggestions_by_type,
+    limit_suggestions,
+)
+from pdf_namefix.safety import (
+    check_disk_space_for_copy,
+    check_output_not_inside_inputs,
+    format_bytes,
+)
 from pdf_namefix.scanner import scan_pdf_files
 from pdf_namefix.undo import apply_undo_plan, build_undo_plan, find_latest_log
 
@@ -61,6 +70,18 @@ def preview(
         bool,
         typer.Option("--verbose", "-v", help="Show classification and suggestion reasons."),
     ] = False,
+    summary_only: Annotated[
+        bool,
+        typer.Option("--summary-only", help="Show only summary without file details."),
+    ] = False,
+    only: Annotated[
+        str | None,
+        typer.Option("--only", help="Show only one document type, e.g. unknown, book, transcript."),
+    ] = None,
+    limit: Annotated[
+        int | None,
+        typer.Option("--limit", help="Limit displayed file details."),
+    ] = None,
 ) -> None:
     """
     Preview discovered PDF files and suggested filenames without touching files.
@@ -76,9 +97,23 @@ def preview(
 
     console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
 
-    if report.suggestions:
+    display_suggestions = filter_suggestions_by_type(
+        report.suggestions,
+        only_type=only,
+    )
+    display_suggestions = limit_suggestions(
+        display_suggestions,
+        limit=limit,
+    )
+
+    if display_suggestions and not summary_only:
         console.print("")
-        for index, suggestion in enumerate(report.suggestions, start=1):
+        if only:
+            console.print(f"Filter: [bold]{only}[/bold]")
+        if limit is not None:
+            console.print(f"Displayed items limit: [bold]{limit}[/bold]")
+
+        for index, suggestion in enumerate(display_suggestions, start=1):
             classified = suggestion.classified_pdf_file
             pdf_file = classified.pdf_file
             size_kb = pdf_file.size_bytes / 1024
@@ -142,6 +177,20 @@ def apply(
         bool,
         typer.Option("--yes", "-y", help="Apply changes without interactive confirmation."),
     ] = False,
+    include_unknown: Annotated[
+        bool,
+        typer.Option(
+            "--include-unknown",
+            help="Allow renaming unknown or low-confidence files.",
+        ),
+    ] = False,
+    min_confidence: Annotated[
+        float,
+        typer.Option(
+            "--min-confidence",
+            help="Minimum confidence required for default apply.",
+        ),
+    ] = 0.7,
 ) -> None:
     """
     Apply safe PDF filename changes.
@@ -156,9 +205,16 @@ def apply(
     classified_files = classify_pdf_files(result.pdf_files)
     suggestions = suggest_filenames(classified_files)
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
-    plan = build_rename_plan(suggestions=report.suggestions, warnings=report.warnings)
+    plan = build_rename_plan(
+        suggestions=report.suggestions,
+        warnings=report.warnings,
+        include_unknown=include_unknown,
+        min_confidence=min_confidence,
+    )
 
     console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
+    console.print(f"Include unknown: [bold]{include_unknown}[/bold]")
+    console.print(f"Minimum confidence: [bold]{min_confidence}[/bold]")
     console.print(f"Planned renames: [bold]{plan.planned_count}[/bold]")
     console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
     console.print(f"Warnings: [bold]{len(plan.warnings)}[/bold]")
@@ -235,6 +291,13 @@ def organize(
         bool,
         typer.Option("--yes", "-y", help="Organize files without interactive confirmation."),
     ] = False,
+    allow_nested_output: Annotated[
+        bool,
+        typer.Option(
+            "--allow-nested-output",
+            help="Allow output folder inside an input folder.",
+        ),
+    ] = False,
 ) -> None:
     """
     Organize PDF files into type-based folders.
@@ -245,12 +308,36 @@ def organize(
 
     result = scan_pdf_files(paths=paths, recursive=recursive)
     classified_files = classify_pdf_files(result.pdf_files)
+
+    if not allow_nested_output:
+        path_check = check_output_not_inside_inputs(out_dir=out, input_paths=paths)
+        if not path_check.ok:
+            console.print(f"[red]{path_check.reason}[/red]")
+            raise typer.Exit(code=1)
+
     plan = build_organize_plan(
         classified_files=classified_files,
         warnings=result.warnings,
         out_dir=out,
         copy=copy,
     )
+
+    if copy:
+        disk_check = check_disk_space_for_copy(plan=plan, out_dir=out)
+
+        console.print(
+            f"Copy size required: [bold]{format_bytes(disk_check.required_bytes)}[/bold]"
+        )
+        console.print(
+            f"Available disk space: [bold]{format_bytes(disk_check.available_bytes)}[/bold]"
+        )
+
+        if not disk_check.ok:
+            console.print(
+                "[red]Not enough disk space for copy operation. "
+                "Use a different output disk/folder or reduce the input set.[/red]"
+            )
+            raise typer.Exit(code=1)
 
     mode_label = "copy" if copy else "move"
 

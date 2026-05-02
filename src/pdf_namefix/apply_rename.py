@@ -3,6 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pdf_namefix.models import (
+    DocumentType,
     FilenameSuggestion,
     RenamePlan,
     RenamePlanItem,
@@ -15,6 +16,8 @@ from pdf_namefix.models import (
 def build_rename_plan(
     suggestions: list[FilenameSuggestion],
     warnings: list[ScanWarning],
+    include_unknown: bool = False,
+    min_confidence: float = 0.7,
 ) -> RenamePlan:
     items: list[RenamePlanItem] = []
 
@@ -24,6 +27,29 @@ def build_rename_plan(
 
         source_path = pdf_file.path
         target_path = source_path.with_name(suggestion.suggested_name)
+
+        if (
+            not include_unknown
+            and (
+                classified.document_type == DocumentType.UNKNOWN
+                or classified.confidence < min_confidence
+            )
+        ):
+            items.append(
+                RenamePlanItem(
+                    source_path=source_path,
+                    target_path=target_path,
+                    original_name=source_path.name,
+                    suggested_name=suggestion.suggested_name,
+                    document_type=classified.document_type,
+                    skipped=True,
+                    skip_reason=(
+                        "Low confidence or unknown type. "
+                        "Use --include-unknown to allow this rename."
+                    ),
+                )
+            )
+            continue
 
         if not source_path.exists():
             items.append(

@@ -27,6 +27,19 @@ class DocumentType(StrEnum):
     GUIDE = "guide"
     CHEATSHEET = "cheatsheet"
 
+    EXAM = "exam"
+    STUDENT_DOCUMENT = "student_document"
+    CV = "cv"
+    VISA = "visa"
+    MEDICAL = "medical"
+    FINANCE = "finance"
+    PAYMENT = "payment"
+    LANGUAGE_LEARNING = "language_learning"
+    REFERENCE = "reference"
+    NOVEL = "novel"
+    WHITEPAPER = "whitepaper"
+    STUDY_MATERIAL = "study_material"
+
     DOCUMENT = "document"
     UNKNOWN = "unknown"
 
