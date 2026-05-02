@@ -6,7 +6,7 @@ from pdf_namefix.classifier import (
     keyword_matches,
     normalize_filename_for_matching,
 )
-from pdf_namefix.models import DocumentType, PdfFile
+from pdf_namefix.models import DocumentType, PdfFile, PdfInsights
 
 
 def make_pdf_file(name: str) -> PdfFile:
@@ -218,3 +218,35 @@ def test_classifies_whitepaper():
     classified = classify_pdf_file(make_pdf_file("Newwhitepaper_Agents2.pdf"))
 
     assert classified.document_type == DocumentType.WHITEPAPER
+
+
+def test_classifies_from_pdf_metadata_when_filename_is_weak():
+    pdf_file = make_pdf_file("File0001.pdf")
+    insights = PdfInsights(
+        path=pdf_file.path,
+        metadata_title="Essential Grammar in Use",
+        metadata_subject="English grammar reference",
+    )
+
+    classified = classify_pdf_file(pdf_file, insights=insights)
+
+    assert classified.document_type in {
+        DocumentType.LANGUAGE_LEARNING,
+        DocumentType.BOOK,
+        DocumentType.REFERENCE,
+    }
+    assert classified.confidence == 0.75
+    assert "metadata/text" in classified.reason
+
+
+def test_classifies_from_first_page_text_when_filename_is_unknown():
+    pdf_file = make_pdf_file("download.pdf")
+    insights = PdfInsights(
+        path=pdf_file.path,
+        first_page_text="Luke's Podcast transcript advanced episode",
+    )
+
+    classified = classify_pdf_file(pdf_file, insights=insights)
+
+    assert classified.document_type == DocumentType.TRANSCRIPT
+    assert classified.confidence == 0.75

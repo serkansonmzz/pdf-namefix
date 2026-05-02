@@ -1,7 +1,7 @@
 import re
 from pathlib import Path
 
-from pdf_namefix.models import ClassifiedPdfFile, DocumentType, PdfFile
+from pdf_namefix.models import ClassifiedPdfFile, DocumentType, PdfFile, PdfInsights
 
 
 KEYWORD_RULES: list[tuple[DocumentType, tuple[str, ...]]] = [
@@ -362,6 +362,14 @@ def normalize_filename_for_matching(path: Path) -> str:
     return normalized.strip()
 
 
+def normalize_text_for_matching(text: str) -> str:
+    normalized = text.lower()
+    normalized = normalized.replace("_", " ").replace("-", " ").replace(".", " ")
+    normalized = re.sub(r"\s+", " ", normalized)
+
+    return normalized.strip()
+
+
 def keyword_matches(normalized_name: str, keyword: str) -> bool:
     normalized_keyword = keyword.lower().replace("_", " ").replace("-", " ").strip()
     pattern = rf"(^|\s){re.escape(normalized_keyword)}($|\s)"
@@ -369,7 +377,10 @@ def keyword_matches(normalized_name: str, keyword: str) -> bool:
     return re.search(pattern, normalized_name) is not None
 
 
-def classify_pdf_file(pdf_file: PdfFile) -> ClassifiedPdfFile:
+def classify_pdf_file(
+    pdf_file: PdfFile,
+    insights: PdfInsights | None = None,
+) -> ClassifiedPdfFile:
     normalized_name = normalize_filename_for_matching(pdf_file.path)
 
     for document_type, keywords in KEYWORD_RULES:
@@ -379,8 +390,21 @@ def classify_pdf_file(pdf_file: PdfFile) -> ClassifiedPdfFile:
                     pdf_file=pdf_file,
                     document_type=document_type,
                     confidence=0.9,
-                    reason=f"Matched keyword: {keyword}",
+                    reason=f"Matched filename keyword: {keyword}",
                 )
+
+    if insights and insights.searchable_text:
+        normalized_insight_text = normalize_text_for_matching(insights.searchable_text)
+
+        for document_type, keywords in KEYWORD_RULES:
+            for keyword in keywords:
+                if keyword_matches(normalized_insight_text, keyword):
+                    return ClassifiedPdfFile(
+                        pdf_file=pdf_file,
+                        document_type=document_type,
+                        confidence=0.75,
+                        reason=f"Matched PDF metadata/text keyword: {keyword}",
+                    )
 
     for keyword in GENERIC_DOCUMENT_KEYWORDS:
         if keyword_matches(normalized_name, keyword):
@@ -388,16 +412,35 @@ def classify_pdf_file(pdf_file: PdfFile) -> ClassifiedPdfFile:
                 pdf_file=pdf_file,
                 document_type=DocumentType.DOCUMENT,
                 confidence=0.3,
-                reason=f"Matched generic keyword: {keyword}",
+                reason=f"Matched generic filename keyword: {keyword}",
             )
+
+    if insights and insights.has_text:
+        return ClassifiedPdfFile(
+            pdf_file=pdf_file,
+            document_type=DocumentType.DOCUMENT,
+            confidence=0.35,
+            reason="PDF has extractable text but no specific keyword matched.",
+        )
 
     return ClassifiedPdfFile(
         pdf_file=pdf_file,
         document_type=DocumentType.UNKNOWN,
         confidence=0.0,
-        reason="No filename keyword matched.",
+        reason="No filename or PDF metadata/text keyword matched.",
     )
 
 
-def classify_pdf_files(pdf_files: list[PdfFile]) -> list[ClassifiedPdfFile]:
-    return [classify_pdf_file(pdf_file) for pdf_file in pdf_files]
+def classify_pdf_files(
+    pdf_files: list[PdfFile],
+    insights_by_path: dict[Path, PdfInsights] | None = None,
+) -> list[ClassifiedPdfFile]:
+    insights_by_path = insights_by_path or {}
+
+    return [
+        classify_pdf_file(
+            pdf_file,
+            insights=insights_by_path.get(pdf_file.path),
+        )
+        for pdf_file in pdf_files
+    ]

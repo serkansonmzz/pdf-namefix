@@ -56,6 +56,37 @@ class PdfFile:
 
 
 @dataclass(frozen=True)
+class PdfInsights:
+    path: Path
+    page_count: int | None = None
+    metadata_title: str | None = None
+    metadata_author: str | None = None
+    metadata_subject: str | None = None
+    metadata_creator: str | None = None
+    metadata_producer: str | None = None
+    metadata_creation_date: str | None = None
+    first_page_text: str | None = None
+    extraction_error: str | None = None
+
+    @property
+    def has_text(self) -> bool:
+        return bool(self.first_page_text and self.first_page_text.strip())
+
+    @property
+    def searchable_text(self) -> str:
+        parts = [
+            self.metadata_title,
+            self.metadata_author,
+            self.metadata_subject,
+            self.metadata_creator,
+            self.metadata_producer,
+            self.first_page_text,
+        ]
+
+        return " ".join(part for part in parts if part).strip()
+
+
+@dataclass(frozen=True)
 class ClassifiedPdfFile:
     pdf_file: PdfFile
     document_type: DocumentType

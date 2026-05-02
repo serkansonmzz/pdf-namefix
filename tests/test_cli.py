@@ -478,3 +478,22 @@ def test_organize_blocks_output_inside_input_by_default(tmp_path):
     assert result.exit_code == 1
     assert "Output folder is inside an input folder" in result.output
     assert pdf.exists() is True
+
+
+def test_preview_accepts_inspect_pdf_flag(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("not really a pdf", encoding="utf-8")
+
+    result = runner.invoke(app, ["preview", str(tmp_path), "--inspect-pdf"])
+
+    assert result.exit_code == 0
+    assert "PDF inspection: True" in result.output
+
+
+def test_apply_accepts_inspect_pdf_flag_for_broken_pdf(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("not really a pdf", encoding="utf-8")
+
+    result = runner.invoke(app, ["apply", str(tmp_path), "--inspect-pdf", "--yes"])
+
+    assert result.exit_code == 0
