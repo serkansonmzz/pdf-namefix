@@ -9,6 +9,7 @@ from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
+from pdf_namefix.pdf_inspector import inspect_pdf_files
 from pdf_namefix.preview_report import (
     build_preview_report,
     filter_suggestions_by_type,
@@ -82,6 +83,13 @@ def preview(
         int | None,
         typer.Option("--limit", help="Limit displayed file details."),
     ] = None,
+    inspect_pdf: Annotated[
+        bool,
+        typer.Option(
+            "--inspect-pdf",
+            help="Read PDF metadata and first-page text to improve classification.",
+        ),
+    ] = False,
 ) -> None:
     """
     Preview discovered PDF files and suggested filenames without touching files.
@@ -91,7 +99,12 @@ def preview(
     console.print("")
 
     result = scan_pdf_files(paths=paths, recursive=recursive)
-    classified_files = classify_pdf_files(result.pdf_files)
+    insights_by_path = inspect_pdf_files(result.pdf_files) if inspect_pdf else {}
+
+    classified_files = classify_pdf_files(
+        result.pdf_files,
+        insights_by_path=insights_by_path,
+    )
     suggestions = suggest_filenames(classified_files)
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
 
@@ -141,6 +154,12 @@ def preview(
                     console.print(
                         f"   [dim]original suggestion: {suggestion.original_suggested_name}[/dim]"
                     )
+                if inspect_pdf:
+                    insight = insights_by_path.get(pdf_file.path)
+                    if insight and insight.extraction_error:
+                        console.print(f"   [dim]inspection error: {insight.extraction_error}[/dim]")
+                    elif insight and insight.metadata_title:
+                        console.print(f"   [dim]metadata title: {insight.metadata_title}[/dim]")
 
     if report.warnings:
         console.print("")
@@ -151,6 +170,7 @@ def preview(
     console.print("")
     console.print("[bold]Summary[/bold]")
     console.print(f"- Total PDF files: {report.summary.total_files}")
+    console.print(f"- PDF inspection: {inspect_pdf}")
     console.print(f"- Unknown type: {report.summary.unknown_count}")
     console.print(f"- Suggested name collisions: {report.summary.collision_count}")
     console.print(f"- Warnings: {report.summary.warning_count}")
@@ -191,6 +211,13 @@ def apply(
             help="Minimum confidence required for default apply.",
         ),
     ] = 0.7,
+    inspect_pdf: Annotated[
+        bool,
+        typer.Option(
+            "--inspect-pdf",
+            help="Read PDF metadata and first-page text to improve classification.",
+        ),
+    ] = False,
 ) -> None:
     """
     Apply safe PDF filename changes.
@@ -202,7 +229,12 @@ def apply(
     console.print("")
 
     result = scan_pdf_files(paths=paths, recursive=recursive)
-    classified_files = classify_pdf_files(result.pdf_files)
+    insights_by_path = inspect_pdf_files(result.pdf_files) if inspect_pdf else {}
+
+    classified_files = classify_pdf_files(
+        result.pdf_files,
+        insights_by_path=insights_by_path,
+    )
     suggestions = suggest_filenames(classified_files)
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
     plan = build_rename_plan(
@@ -298,6 +330,13 @@ def organize(
             help="Allow output folder inside an input folder.",
         ),
     ] = False,
+    inspect_pdf: Annotated[
+        bool,
+        typer.Option(
+            "--inspect-pdf",
+            help="Read PDF metadata and first-page text to improve classification.",
+        ),
+    ] = False,
 ) -> None:
     """
     Organize PDF files into type-based folders.
@@ -307,7 +346,12 @@ def organize(
     console.print("")
 
     result = scan_pdf_files(paths=paths, recursive=recursive)
-    classified_files = classify_pdf_files(result.pdf_files)
+    insights_by_path = inspect_pdf_files(result.pdf_files) if inspect_pdf else {}
+
+    classified_files = classify_pdf_files(
+        result.pdf_files,
+        insights_by_path=insights_by_path,
+    )
 
     if not allow_nested_output:
         path_check = check_output_not_inside_inputs(out_dir=out, input_paths=paths)

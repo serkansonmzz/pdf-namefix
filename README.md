@@ -262,6 +262,38 @@ The MVP is designed to be safe by default:
 - cloud sync
 - background folder monitoring
 
+## PDF Metadata and Text Inspection
+
+By default, `pdf-namefix` classifies files using filenames only.
+
+For messy folders, you can enable local PDF inspection:
+
+```bash
+pdf-namefix preview ~/Downloads --inspect-pdf
+```
+
+This reads:
+
+- PDF metadata title
+- PDF metadata author
+- PDF metadata subject
+- first page extractable text
+
+It does not use AI, OCR, or cloud services.
+
+For large folders, combine it with filters:
+
+```bash
+pdf-namefix preview ~/Downloads --inspect-pdf --summary-only
+pdf-namefix preview ~/Downloads --inspect-pdf --only unknown --limit 30
+```
+
+Notes:
+
+- scanned image PDFs may not return text
+- encrypted or broken PDFs may fail inspection
+- failed inspection does not stop the whole command
+
 See:
 
 ```text

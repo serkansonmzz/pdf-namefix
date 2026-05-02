@@ -19,6 +19,19 @@
 - High-volume nested folders can still cause long preview outputs (use `--limit` or `--only`).
 - Disk space check for `organize --copy` is a basic approximation and does not account for filesystem-specific block overheads.
 
+## PDF inspection limitations
+
+`--inspect-pdf` reads local PDF metadata and first-page extractable text.
+
+Limitations:
+
+- no OCR
+- no AI
+- scanned image PDFs may still be unknown
+- encrypted PDFs may fail inspection
+- extraction quality depends on the PDF structure
+- only the first page is inspected in this MVP
+
 ## Safety guarantees
 
 The MVP intentionally keeps these guarantees:

@@ -263,3 +263,19 @@ Copying hundreds of large PDFs can exhaust disk space, causing mid-operation fai
 Reason:
 
 Placing the organized folder inside the scanned folder can cause recursive scanning loops or confusion in subsequent runs.
+
+## Decision 033: PDF inspection is opt-in
+
+PDF metadata and first-page text extraction are enabled with `--inspect-pdf`.
+
+Reason:
+
+Reading PDF internals can be slower on large folders. The default command should remain fast and filename-based.
+
+## Decision 034: Phase 14 does not add OCR or AI
+
+This phase only reads metadata and extractable first-page text.
+
+Reason:
+
+Before adding OCR/AI complexity, the tool should first use cheap local PDF signals.
