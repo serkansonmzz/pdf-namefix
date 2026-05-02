@@ -11,6 +11,7 @@ from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
 from pdf_namefix.preview_report import build_preview_report
 from pdf_namefix.scanner import scan_pdf_files
+from pdf_namefix.undo import apply_undo_plan, build_undo_plan, find_latest_log
 
 
 app = typer.Typer(
@@ -82,7 +83,12 @@ def preview(
             pdf_file = classified.pdf_file
             size_kb = pdf_file.size_bytes / 1024
 
-            collision_label = " [red][COLLISION][/red]" if suggestion.has_collision else ""
+            if suggestion.collision_resolved:
+                collision_label = " [yellow][RESOLVED COLLISION][/yellow]"
+            elif suggestion.has_collision:
+                collision_label = " [red][COLLISION][/red]"
+            else:
+                collision_label = ""
 
             console.print(
                 fr"{index}. {pdf_file.path} "
@@ -96,6 +102,10 @@ def preview(
             if verbose:
                 console.print(f"   [dim]classification: {classified.reason}[/dim]")
                 console.print(f"   [dim]suggestion: {suggestion.reason}[/dim]")
+                if suggestion.original_suggested_name:
+                    console.print(
+                        f"   [dim]original suggestion: {suggestion.original_suggested_name}[/dim]"
+                    )
 
     if report.warnings:
         console.print("")
@@ -168,10 +178,13 @@ def apply(
                     f"→ {item.suggested_name}"
                 )
 
-    if report.summary.collision_count:
+    suggested_names = [
+        suggestion.suggested_name.lower() for suggestion in report.suggestions
+    ]
+    if len(suggested_names) != len(set(suggested_names)):
         console.print("")
         console.print(
-            "[red]Apply blocked because suggested filename collisions were found.[/red]"
+            "[red]Apply blocked because unresolved filename collisions remain.[/red]"
         )
         raise typer.Exit(code=1)
 
@@ -293,4 +306,90 @@ def organize(
     console.print(f"- Log: {organize_result.log_path}")
 
     if organize_result.failed_count:
+        raise typer.Exit(code=1)
+
+
+@app.command()
+def undo(
+    log: Annotated[
+        Path | None,
+        typer.Option("--log", help="Specific rename/organize JSONL log to undo."),
+    ] = None,
+    last: Annotated[
+        bool,
+        typer.Option("--last", help="Undo the latest rename/organize log."),
+    ] = False,
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Undo without interactive confirmation."),
+    ] = False,
+) -> None:
+    """
+    Undo the latest rename/move operation from local logs.
+
+    Copy operations are skipped by default because undoing a copy would delete files.
+    """
+    console.print("[bold]Undo mode[/bold]")
+
+    log_dir = Path(".pdf-namefix") / "logs"
+
+    if log is None:
+        if not last:
+            console.print(
+                "[yellow]No log provided. Use --last or --log <path>.[/yellow]"
+            )
+            raise typer.Exit(code=1)
+
+        latest_log = find_latest_log(log_dir)
+        if latest_log is None:
+            console.print("[yellow]No rename/organize logs found.[/yellow]")
+            raise typer.Exit(code=1)
+
+        log = latest_log
+
+    if not log.exists():
+        console.print(f"[red]Log file does not exist: {log}[/red]")
+        raise typer.Exit(code=1)
+
+    plan = build_undo_plan(log)
+
+    console.print(f"Log: {plan.log_path}")
+    console.print(f"Planned undo operations: [bold]{plan.planned_count}[/bold]")
+    console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
+    console.print("")
+
+    for index, item in enumerate(plan.items, start=1):
+        if item.skipped:
+            console.print(
+                f"{index}. [yellow]SKIP[/yellow] {item.target_path} "
+                f"→ {item.source_path} "
+                f"[dim]reason={item.skip_reason}[/dim]"
+            )
+        else:
+            console.print(
+                f"{index}. [green]UNDO[/green] {item.target_path} "
+                f"→ {item.source_path}"
+            )
+
+    if plan.planned_count == 0:
+        console.print("")
+        console.print("[yellow]No undo operations to apply.[/yellow]")
+        return
+
+    if not yes:
+        console.print("")
+        confirmed = typer.confirm("Apply this undo plan?")
+        if not confirmed:
+            console.print("[yellow]Undo cancelled.[/yellow]")
+            raise typer.Exit(code=1)
+
+    result = apply_undo_plan(plan)
+
+    console.print("")
+    console.print("[bold]Undo result[/bold]")
+    console.print(f"- Undone: {result.undone_count}")
+    console.print(f"- Skipped: {result.skipped_count}")
+    console.print(f"- Failed: {result.failed_count}")
+
+    if result.failed_count:
         raise typer.Exit(code=1)

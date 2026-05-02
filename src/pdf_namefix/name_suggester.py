@@ -128,43 +128,86 @@ def suggest_filename(classified_pdf_file: ClassifiedPdfFile) -> FilenameSuggesti
     )
 
 
-def mark_collisions(
+def split_pdf_filename(filename: str) -> tuple[str, str]:
+    if filename.lower().endswith(".pdf"):
+        return filename[:-4], ".pdf"
+
+    path = Path(filename)
+    return path.stem, path.suffix or ".pdf"
+
+
+def build_suffixed_filename(filename: str, suffix_number: int) -> str:
+    stem, suffix = split_pdf_filename(filename)
+    return f"{stem}_{suffix_number}{suffix}"
+
+
+def resolve_suggestion_collisions(
     suggestions: list[FilenameSuggestion],
+    existing_names: set[str] | None = None,
 ) -> list[FilenameSuggestion]:
-    name_counts: dict[str, int] = {}
+    existing_names = {name.lower() for name in existing_names or set()}
+
+    used_names: set[str] = set(existing_names)
+    original_counts: dict[str, int] = {}
 
     for suggestion in suggestions:
-        name_counts[suggestion.suggested_name] = (
-            name_counts.get(suggestion.suggested_name, 0) + 1
+        key = suggestion.suggested_name.lower()
+        original_counts[key] = original_counts.get(key, 0) + 1
+
+    resolved: list[FilenameSuggestion] = []
+
+    for suggestion in suggestions:
+        original_name = suggestion.suggested_name
+        original_key = original_name.lower()
+        has_collision = (
+            original_counts[original_key] > 1 or original_key in existing_names
         )
 
-    updated: list[FilenameSuggestion] = []
+        candidate_name = original_name
+        candidate_key = candidate_name.lower()
+        suffix_number = 2
 
-    for suggestion in suggestions:
-        has_collision = name_counts[suggestion.suggested_name] > 1
+        while candidate_key in used_names:
+            candidate_name = build_suffixed_filename(original_name, suffix_number)
+            candidate_key = candidate_name.lower()
+            suffix_number += 1
 
-        updated.append(
+        used_names.add(candidate_key)
+
+        resolved.append(
             FilenameSuggestion(
                 classified_pdf_file=suggestion.classified_pdf_file,
-                suggested_name=suggestion.suggested_name,
-                reason=suggestion.reason,
+                suggested_name=candidate_name,
+                reason=(
+                    suggestion.reason
+                    if candidate_name == original_name
+                    else f"{suggestion.reason} Collision resolved with numeric suffix."
+                ),
                 has_collision=has_collision,
-                collision_group=suggestion.suggested_name if has_collision else None,
+                collision_group=original_name if has_collision else None,
+                collision_resolved=has_collision and candidate_name != original_name,
+                original_suggested_name=(
+                    original_name if candidate_name != original_name else None
+                ),
             )
         )
 
-    return updated
+    return resolved
 
 
 def suggest_filenames(
     classified_pdf_files: list[ClassifiedPdfFile],
+    existing_names: set[str] | None = None,
 ) -> list[FilenameSuggestion]:
     suggestions = [
         suggest_filename(classified_pdf_file)
         for classified_pdf_file in classified_pdf_files
     ]
 
-    return mark_collisions(suggestions)
+    return resolve_suggestion_collisions(
+        suggestions=suggestions,
+        existing_names=existing_names,
+    )
 
 
 def has_any_collision(suggestions: list[FilenameSuggestion]) -> bool:

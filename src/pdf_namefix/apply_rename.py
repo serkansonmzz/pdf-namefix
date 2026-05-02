@@ -39,19 +39,6 @@ def build_rename_plan(
             )
             continue
 
-        if suggestion.has_collision:
-            items.append(
-                RenamePlanItem(
-                    source_path=source_path,
-                    target_path=target_path,
-                    original_name=source_path.name,
-                    suggested_name=suggestion.suggested_name,
-                    document_type=classified.document_type,
-                    skipped=True,
-                    skip_reason="Suggested filename collision.",
-                )
-            )
-            continue
 
         if source_path.name == suggestion.suggested_name:
             items.append(
@@ -106,6 +93,7 @@ def write_rename_log(
     with log_path.open("w", encoding="utf-8") as file:
         for item in result.items:
             payload = {
+                "operation": "rename",
                 "source_path": str(item.source_path),
                 "target_path": str(item.target_path),
                 "status": item.status,

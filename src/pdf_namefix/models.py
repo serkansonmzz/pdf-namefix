@@ -57,6 +57,8 @@ class FilenameSuggestion:
     reason: str
     has_collision: bool = False
     collision_group: str | None = None
+    collision_resolved: bool = False
+    original_suggested_name: str | None = None
 
 
 @dataclass(frozen=True)
