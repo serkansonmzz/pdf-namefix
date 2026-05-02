@@ -300,6 +300,43 @@ See:
 docs/KNOWN_LIMITATIONS.md
 ```
 
+## Export Preview Reports
+
+You can export preview results as Markdown or JSON.
+
+Markdown:
+
+```bash
+pdf-namefix preview ~/Downloads \
+  --inspect-pdf \
+  --format markdown \
+  --out ~/Desktop/pdf-preview-report.md
+```
+
+JSON:
+
+```bash
+pdf-namefix preview ~/Downloads \
+  --inspect-pdf \
+  --format json \
+  --out ~/Desktop/pdf-preview-report.json
+```
+
+When using `--format markdown` or `--format json`, `--out` is required.
+
+Markdown is useful for:
+
+- Obsidian notes
+- manual review
+- sharing reports
+
+JSON is useful for:
+
+- automation
+- future AI-assisted naming
+- dashboards
+- custom scripts
+
 ## Collision Handling
 
 `pdf-namefix` resolves suggested filename collisions with numeric suffixes.
