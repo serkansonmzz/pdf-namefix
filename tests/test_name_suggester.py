@@ -125,7 +125,7 @@ def test_suggest_filename_for_unknown_pdf():
     assert suggestion.suggested_name == "unknown-date_random_39281_unknown.pdf"
 
 
-def test_suggest_filenames_marks_collisions():
+def test_suggest_filenames_resolves_collisions_with_suffixes():
     files = [
         make_pdf_file("scan.pdf"),
         make_pdf_file("document.pdf"),
@@ -134,12 +134,36 @@ def test_suggest_filenames_marks_collisions():
 
     suggestions = suggest_filenames(classified_files)
 
-    assert len(suggestions) == 2
+    assert [suggestion.suggested_name for suggestion in suggestions] == [
+        "unknown-date_unknown_document.pdf",
+        "unknown-date_unknown_document_2.pdf",
+    ]
     assert all(suggestion.has_collision for suggestion in suggestions)
-    assert all(
-        suggestion.collision_group == "unknown-date_unknown_document.pdf"
-        for suggestion in suggestions
-    )
+    assert suggestions[1].collision_resolved is True
+    assert suggestions[1].original_suggested_name == "unknown-date_unknown_document.pdf"
+
+
+def test_suggest_filenames_resolves_three_way_collision():
+    files = [
+        make_pdf_file("scan.pdf"),
+        make_pdf_file("document.pdf"),
+        make_pdf_file("scanned.pdf"),
+    ]
+    classified_files = [classify_pdf_file(file) for file in files]
+
+    suggestions = suggest_filenames(classified_files)
+
+    assert [suggestion.suggested_name for suggestion in suggestions] == [
+        "unknown-date_unknown_document.pdf",
+        "unknown-date_unknown_document_2.pdf",
+        "unknown-date_unknown_document_3.pdf",
+    ]
+
+
+def test_build_suffixed_filename_keeps_pdf_extension():
+    from pdf_namefix.name_suggester import build_suffixed_filename
+
+    assert build_suffixed_filename("file.pdf", 2) == "file_2.pdf"
 
 
 def test_suggest_filenames_does_not_mark_unique_names_as_collisions():

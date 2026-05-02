@@ -123,6 +123,7 @@ def write_organize_log(
     with log_path.open("w", encoding="utf-8") as file:
         for item in result.items:
             payload = {
+                "operation": "organize",
                 "source_path": str(item.source_path),
                 "target_path": str(item.target_path),
                 "status": item.status,

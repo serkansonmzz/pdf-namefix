@@ -213,3 +213,21 @@ PyPI publishing is not part of v0.1.0.
 Reason:
 
 The package should first prove its installability and CLI behavior via GitHub releases and pipx.
+
+## Decision 027: Suggested filename collisions are resolved with numeric suffixes
+
+When multiple files produce the same suggested filename, `pdf-namefix` appends numeric suffixes such as `_2`, `_3`.
+
+Reason:
+
+Blocking all collisions is safe but too strict for real Downloads folders. Numeric suffixing keeps apply useful while preserving no-overwrite behavior.
+
+## Decision 028: Undo supports rename and move, but not copy deletion by default
+
+Undo can reverse rename operations and organize move operations.
+
+Copy operations are skipped by default.
+
+Reason:
+
+Undoing a copy would require deleting the copied file, which conflicts with the current no-delete safety model.

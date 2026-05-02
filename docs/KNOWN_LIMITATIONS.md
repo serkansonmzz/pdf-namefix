@@ -9,10 +9,10 @@
 - OCR is not supported.
 - AI-assisted naming is not supported in v0.1.
 - Date extraction only works with common filename date formats.
-- Suggested filename collisions are detected, but automatic suffix resolution is not supported yet.
-- `apply` blocks when suggested filename collisions exist.
-- `organize` does not rename files; it only moves or copies them into type-based folders.
-- Undo is not implemented yet.
+- Suggested filename collisions are resolved with numeric suffixes.
+- Undo supports rename and organize move operations.
+- Undo does not delete copied files by default.
+- Undo is based on local JSONL logs under `.pdf-namefix/logs/`.
 - Recursive scan can be expensive on large folders.
 - Permission-denied behavior is best-effort and platform-dependent.
 - Log files are written locally under `.pdf-namefix/logs/`.

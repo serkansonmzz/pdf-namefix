@@ -22,7 +22,7 @@ def write_pdf(path: Path) -> Path:
     return path
 
 
-def test_build_rename_plan_skips_collisions(tmp_path: Path):
+def test_build_rename_plan_allows_resolved_collisions(tmp_path: Path):
     scan = write_pdf(tmp_path / "scan.pdf")
     document = write_pdf(tmp_path / "document.pdf")
 
@@ -34,10 +34,12 @@ def test_build_rename_plan_skips_collisions(tmp_path: Path):
 
     plan = build_rename_plan(suggestions=suggestions, warnings=[])
 
-    assert plan.planned_count == 0
-    assert plan.skipped_count == 2
-    assert all(item.skipped for item in plan.items)
-    assert all(item.skip_reason == "Suggested filename collision." for item in plan.items)
+    assert plan.planned_count == 2
+    assert plan.skipped_count == 0
+    assert [item.suggested_name for item in plan.items] == [
+        "unknown-date_unknown_document.pdf",
+        "unknown-date_unknown_document_2.pdf",
+    ]
 
 
 def test_build_rename_plan_skips_existing_target(tmp_path: Path):
@@ -119,3 +121,18 @@ def test_build_rename_plan_skips_missing_source_after_scan(tmp_path: Path):
     assert plan.planned_count == 0
     assert plan.skipped_count == 1
     assert plan.items[0].skip_reason == "Source file no longer exists."
+
+
+def test_apply_rename_log_includes_operation(tmp_path: Path):
+    source = write_pdf(tmp_path / "rust_lifetimes_notes.pdf")
+
+    classified = classify_pdf_file(make_pdf_file(source))
+    suggestions = suggest_filenames([classified])
+    plan = build_rename_plan(suggestions=suggestions, warnings=[])
+
+    log_dir = tmp_path / ".pdf-namefix" / "logs"
+    result = apply_rename_plan(plan=plan, log_dir=log_dir)
+
+    log_text = result.log_path.read_text(encoding="utf-8")
+
+    assert '"operation": "rename"' in log_text

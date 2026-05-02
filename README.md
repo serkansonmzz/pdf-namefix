@@ -237,7 +237,7 @@ The MVP is designed to be safe by default:
 - organize asks confirmation by default
 - no delete
 - no overwrite
-- collisions block apply
+- unresolved duplicates are guarded against
 - existing target files are skipped
 - `--yes` does not bypass safety checks
 - logs are written locally under `.pdf-namefix/logs/`
@@ -249,8 +249,6 @@ The MVP is designed to be safe by default:
 - AI-assisted naming
 - OCR
 - PDF content parsing
-- undo command
-- automatic collision suffixing
 - GUI
 - cloud sync
 - background folder monitoring
@@ -260,6 +258,59 @@ See:
 ```text
 docs/KNOWN_LIMITATIONS.md
 ```
+
+## Collision Handling
+
+`pdf-namefix` resolves suggested filename collisions with numeric suffixes.
+
+Example:
+
+```text
+scan.pdf
+document.pdf
+```
+
+may become:
+
+```text
+unknown-date_unknown_document.pdf
+unknown-date_unknown_document_2.pdf
+```
+
+Safety rules still apply:
+
+- no overwrite
+- target exists is skipped
+- unresolved duplicate suggestions block apply
+
+## Undo
+
+`pdf-namefix` can undo the latest rename or move operation from local logs.
+
+Undo the latest operation:
+
+```bash
+pdf-namefix undo --last
+```
+
+Skip confirmation:
+
+```bash
+pdf-namefix undo --last --yes
+```
+
+Undo from a specific log:
+
+```bash
+pdf-namefix undo --log .pdf-namefix/logs/rename-log-20260501T120000Z.jsonl
+```
+
+Notes:
+
+- rename operations can be undone
+- organize move operations can be undone
+- organize copy operations are skipped by default because undoing a copy would delete files
+- undo never overwrites existing files
 
 ## Install as a CLI
 

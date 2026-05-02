@@ -163,3 +163,24 @@ def test_build_organize_plan_skips_missing_source_after_scan(tmp_path: Path):
     assert plan.planned_count == 0
     assert plan.skipped_count == 1
     assert plan.items[0].skip_reason == "Source file no longer exists."
+
+
+def test_organize_log_includes_operation(tmp_path: Path):
+    source = write_pdf(tmp_path / "clean_architecture_book.pdf")
+    out_dir = tmp_path / "organized"
+
+    classified = classify_pdf_file(make_pdf_file(source))
+    plan = build_organize_plan(
+        classified_files=[classified],
+        warnings=[],
+        out_dir=out_dir,
+        copy=False,
+    )
+
+    log_dir = tmp_path / ".pdf-namefix" / "logs"
+    result = apply_organize_plan(plan=plan, log_dir=log_dir)
+
+    log_text = result.log_path.read_text(encoding="utf-8")
+
+    assert '"operation": "organize"' in log_text
+    assert '"mode": "move"' in log_text

@@ -115,7 +115,7 @@ def test_apply_renames_file_with_yes(tmp_path):
     assert target.exists() is True
 
 
-def test_apply_blocks_collision(tmp_path):
+def test_apply_resolves_collision_with_suffixes(tmp_path):
     scan = tmp_path / "scan.pdf"
     document = tmp_path / "document.pdf"
     scan.write_text("test", encoding="utf-8")
@@ -123,10 +123,15 @@ def test_apply_blocks_collision(tmp_path):
 
     result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
 
-    assert result.exit_code == 1
-    assert "Apply blocked because suggested filename collisions were found" in result.output
-    assert scan.exists() is True
-    assert document.exists() is True
+    first = tmp_path / "unknown-date_unknown_document.pdf"
+    second = tmp_path / "unknown-date_unknown_document_2.pdf"
+
+    assert result.exit_code == 0
+    assert "Renamed: 2" in result.output
+    assert scan.exists() is False
+    assert document.exists() is False
+    assert first.exists() is True
+    assert second.exists() is True
 
 
 def test_apply_cancelled_without_confirmation(tmp_path):
@@ -260,7 +265,7 @@ def test_preview_marks_filename_collisions(tmp_path):
     result = runner.invoke(app, ["preview", str(tmp_path)])
 
     assert result.exit_code == 0
-    assert "[COLLISION]" in result.output
+    assert "[RESOLVED COLLISION]" in result.output
     assert "Suggested name collisions: 2" in result.output
     assert "Do not apply renames until collisions" in result.output
 
@@ -315,3 +320,82 @@ def test_organize_empty_folder_does_nothing(tmp_path):
     assert result.exit_code == 0
     assert "PDF files found: 0" in result.output
     assert "No files to organize" in result.output
+
+
+def test_undo_last_reverts_apply(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    apply_result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
+
+    renamed = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+
+    assert apply_result.exit_code == 0
+    assert renamed.exists() is True
+
+    undo_result = runner.invoke(app, ["undo", "--last", "--yes"])
+
+    assert undo_result.exit_code == 0
+    assert "Undo result" in undo_result.output
+    assert "Undone: 1" in undo_result.output
+    assert pdf.exists() is True
+    assert renamed.exists() is False
+
+
+def test_undo_last_reverts_organize_move(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    organize_result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--yes"],
+    )
+
+    moved = out_dir / "books" / "clean_architecture_book.pdf"
+
+    assert organize_result.exit_code == 0
+    assert moved.exists() is True
+
+    undo_result = runner.invoke(app, ["undo", "--last", "--yes"])
+
+    assert undo_result.exit_code == 0
+    assert "Undone: 1" in undo_result.output
+    assert pdf.exists() is True
+    assert moved.exists() is False
+
+
+def test_undo_last_skips_organize_copy(tmp_path, monkeypatch):
+    monkeypatch.chdir(tmp_path)
+
+    source_dir = tmp_path / "source"
+    out_dir = tmp_path / "organized"
+    source_dir.mkdir()
+
+    pdf = source_dir / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    organize_result = runner.invoke(
+        app,
+        ["organize", str(source_dir), "--out", str(out_dir), "--copy", "--yes"],
+    )
+
+    copied = out_dir / "books" / "clean_architecture_book.pdf"
+
+    assert organize_result.exit_code == 0
+    assert pdf.exists() is True
+    assert copied.exists() is True
+
+    undo_result = runner.invoke(app, ["undo", "--last", "--yes"])
+
+    assert undo_result.exit_code == 0
+    assert "No undo operations to apply" in undo_result.output
+    assert pdf.exists() is True
+    assert copied.exists() is True
