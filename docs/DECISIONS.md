@@ -279,3 +279,19 @@ This phase only reads metadata and extractable first-page text.
 Reason:
 
 Before adding OCR/AI complexity, the tool should first use cheap local PDF signals.
+
+## Decision 035: Preview reports can be exported as Markdown or JSON
+
+`preview` supports `--format markdown --out report.md` and `--format json --out report.json`.
+
+Reason:
+
+Large terminal outputs are hard to review. Markdown supports human review, while JSON supports automation and future AI-assisted workflows.
+
+## Decision 036: Text output remains terminal-only
+
+`--format text` is the default terminal output. File export is only supported for Markdown and JSON.
+
+Reason:
+
+The structured formats are more useful for saved reports.

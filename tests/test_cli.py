@@ -497,3 +497,159 @@ def test_apply_accepts_inspect_pdf_flag_for_broken_pdf(tmp_path):
     result = runner.invoke(app, ["apply", str(tmp_path), "--inspect-pdf", "--yes"])
 
     assert result.exit_code == 0
+
+
+def test_preview_exports_markdown_report(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    out = tmp_path / "report.md"
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "markdown",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Preview report exported" in result.output
+    assert "Format: markdown" in result.output
+    assert out.exists()
+    assert "# pdf-namefix Preview Report" in out.read_text(encoding="utf-8")
+
+
+def test_preview_exports_json_report(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    out = tmp_path / "report.json"
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "json",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Preview report exported" in result.output
+    assert "Format: json" in result.output
+    assert out.exists()
+    assert '"summary"' in out.read_text(encoding="utf-8")
+
+
+def test_preview_export_requires_out_for_markdown(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "markdown",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "--out is required" in result.output
+
+
+def test_preview_rejects_unsupported_format(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "xml",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Unsupported format" in result.output
+
+
+def test_preview_rejects_out_with_text_format(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    out = tmp_path / "report.txt"
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "text",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "--out is only supported" in result.output
+
+
+def test_preview_export_does_not_overwrite_existing_report_by_default(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    out = tmp_path / "report.md"
+    out.write_text("existing", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "markdown",
+            "--out",
+            str(out),
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Report file already exists" in result.output
+    assert out.read_text(encoding="utf-8") == "existing"
+
+
+def test_preview_export_can_overwrite_existing_report_with_flag(tmp_path):
+    pdf = tmp_path / "clean_architecture_book.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    out = tmp_path / "report.md"
+    out.write_text("existing", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        [
+            "preview",
+            str(tmp_path),
+            "--format",
+            "markdown",
+            "--out",
+            str(out),
+            "--overwrite-report",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "# pdf-namefix Preview Report" in out.read_text(encoding="utf-8")

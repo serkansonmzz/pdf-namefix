@@ -15,6 +15,7 @@ from pdf_namefix.preview_report import (
     filter_suggestions_by_type,
     limit_suggestions,
 )
+from pdf_namefix.report_exporter import SUPPORTED_REPORT_FORMATS, write_report
 from pdf_namefix.safety import (
     check_disk_space_for_copy,
     check_output_not_inside_inputs,
@@ -90,6 +91,27 @@ def preview(
             help="Read PDF metadata and first-page text to improve classification.",
         ),
     ] = False,
+    output_format: Annotated[
+        str,
+        typer.Option(
+            "--format",
+            help="Output format: text, markdown, or json.",
+        ),
+    ] = "text",
+    out: Annotated[
+        Path | None,
+        typer.Option(
+            "--out",
+            help="Write preview report to a file. Requires --format markdown or --format json.",
+        ),
+    ] = None,
+    overwrite_report: Annotated[
+        bool,
+        typer.Option(
+            "--overwrite-report",
+            help="Overwrite existing report file.",
+        ),
+    ] = False,
 ) -> None:
     """
     Preview discovered PDF files and suggested filenames without touching files.
@@ -107,6 +129,47 @@ def preview(
     )
     suggestions = suggest_filenames(classified_files)
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
+
+    if output_format not in SUPPORTED_REPORT_FORMATS:
+        console.print(
+            f"[red]Unsupported format: {output_format}. "
+            f"Supported formats: {', '.join(sorted(SUPPORTED_REPORT_FORMATS))}[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    if output_format in {"markdown", "json"} and out is None:
+        console.print(
+            "[red]--out is required when using --format markdown or --format json.[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    if output_format == "text" and out is not None:
+        console.print(
+            "[red]--out is only supported with --format markdown or --format json.[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    if output_format in {"markdown", "json"} and out is not None:
+        try:
+            written_path = write_report(
+                report=report,
+                report_format=output_format,
+                out_path=out,
+                overwrite=overwrite_report,
+            )
+        except FileExistsError as exc:
+            console.print(f"[red]{exc}[/red]")
+            console.print("Use --overwrite-report to replace it.")
+            raise typer.Exit(code=1)
+
+        console.print("[bold]Preview report exported[/bold]")
+        console.print(f"- Format: {output_format}")
+        console.print(f"- Output: {written_path}")
+        console.print(f"- Total PDF files: {report.summary.total_files}")
+        console.print(f"- Unknown type: {report.summary.unknown_count}")
+        console.print(f"- Suggested name collisions: {report.summary.collision_count}")
+        console.print(f"- Warnings: {report.summary.warning_count}")
+        return
 
     console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
 
