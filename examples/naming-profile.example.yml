@@ -1,0 +1,13 @@
+language: english
+pattern: "{date}_{title}_{type}"
+max_length: 120
+date_fallback: "unknown-date"
+preserve_author_for_books: true
+skip_if_confidence_below: 0.70
+rules:
+  - Use lowercase snake_case filenames.
+  - Keep filenames short but descriptive.
+  - Do not invent dates.
+  - Use unknown-date if no reliable date exists.
+  - Preserve author names for books when useful.
+  - Preserve .pdf extension.

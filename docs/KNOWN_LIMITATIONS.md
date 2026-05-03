@@ -4,10 +4,9 @@
 
 ## Current limitations
 
-- Classification is filename-based only.
-- PDF content is not parsed yet.
+- Classification uses filename signals and optional PDF metadata/first-page text.
 - OCR is not supported.
-- AI-assisted naming is not supported in v0.1.
+- AI-assisted naming is optional and report-only.
 - Date extraction only works with common filename date formats.
 - Suggested filename collisions are resolved with numeric suffixes.
 - Undo supports rename and organize move operations.
@@ -31,6 +30,19 @@ Limitations:
 - encrypted PDFs may fail inspection
 - extraction quality depends on the PDF structure
 - only the first page is inspected in this MVP
+
+## AI-assisted naming limitations
+
+AI-assisted naming is optional and uses a remote API.
+
+Limitations:
+
+- suggestions are not automatically applied
+- results must be reviewed
+- API usage may cost money
+- sensitive filenames, metadata, and text should not be sent unless intentional
+- AI output can still be wrong
+- AI integration currently writes JSON suggestions only
 
 ## Safety guarantees
 

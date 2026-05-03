@@ -295,3 +295,27 @@ Large terminal outputs are hard to review. Markdown supports human review, while
 Reason:
 
 The structured formats are more useful for saved reports.
+
+## Decision 037: AI-assisted naming is opt-in
+
+AI suggestions are only generated through the explicit `ai-suggest` command.
+
+Reason:
+
+The default tool should remain local-first and deterministic.
+
+## Decision 038: AI suggestions are not applied automatically
+
+The AI command writes suggestions to JSON only.
+
+Reason:
+
+Remote model output should be reviewed before any filesystem operation.
+
+## Decision 039: AI candidates default to unknown/low-confidence files
+
+By default, only unknown or low-confidence files are sent to AI.
+
+Reason:
+
+This reduces cost and keeps AI focused on cases where deterministic rules are weak.

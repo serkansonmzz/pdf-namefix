@@ -15,6 +15,7 @@ def test_help_command():
     assert "preview" in result.output
     assert "apply" in result.output
     assert "organize" in result.output
+    assert "ai-suggest" in result.output
 
 
 def test_version_command():
@@ -172,6 +173,35 @@ def test_apply_cancelled_without_confirmation(tmp_path):
     assert "Apply cancelled" in result.output
     assert pdf.exists() is True
     assert target.exists() is False
+
+
+def test_ai_suggest_cancelled_without_confirmation(tmp_path):
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("not really a pdf", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["ai-suggest", str(tmp_path), "--out", str(tmp_path / "ai.json")],
+        input="n\n",
+    )
+
+    assert result.exit_code == 1
+    assert "AI Suggest mode" in result.output
+    assert "AI suggestion cancelled" in result.output
+
+
+def test_ai_suggest_requires_api_key_with_yes(tmp_path, monkeypatch):
+    monkeypatch.delenv("OPENAI_API_KEY", raising=False)
+    pdf = tmp_path / "random_39281.pdf"
+    pdf.write_text("not really a pdf", encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["ai-suggest", str(tmp_path), "--out", str(tmp_path / "ai.json"), "--yes"],
+    )
+
+    assert result.exit_code == 1
+    assert "OPENAI_API_KEY is not set" in result.output
 
 
 def test_organize_moves_file_with_yes(tmp_path):
