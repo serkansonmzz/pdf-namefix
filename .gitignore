@@ -24,6 +24,7 @@ build/
 .pdf-namefix/
 rename-log.json
 rename-log.jsonl
+ai-suggestions.json
 generated/
 reports/
 

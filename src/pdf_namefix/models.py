@@ -106,6 +106,29 @@ class FilenameSuggestion:
 
 
 @dataclass(frozen=True)
+class AiNamingInput:
+    source_path: Path
+    source_name: str
+    current_document_type: DocumentType
+    current_confidence: float
+    current_suggested_name: str
+    metadata_title: str | None = None
+    metadata_author: str | None = None
+    metadata_subject: str | None = None
+    first_page_text: str | None = None
+
+
+@dataclass(frozen=True)
+class AiNamingSuggestion:
+    source_path: Path
+    suggested_name: str
+    document_type: DocumentType
+    confidence: float
+    reason: str
+    should_apply: bool
+
+
+@dataclass(frozen=True)
 class ScanWarning:
     path: Path
     reason: str

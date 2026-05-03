@@ -413,6 +413,47 @@ pipx uninstall pdf-namefix
 
 For development usage, use `uv run` inside the repository.
 
+## AI-Assisted Naming
+
+Optional AI-assisted suggestions are available with:
+
+```bash
+pdf-namefix ai-suggest ~/Downloads \
+  --inspect-pdf \
+  --out ai-suggestions.json
+```
+
+This command:
+
+- reads current preview/classification signals
+- uses PDF metadata and first-page text if enabled
+- sends selected file signals to the AI model
+- writes suggestions to JSON
+- does not rename files
+- does not move files
+- does not delete files
+
+Set your API key:
+
+```bash
+export OPENAI_API_KEY="your_api_key_here"
+```
+
+By default, only unknown or low-confidence files are sent to AI.
+
+Limit requests:
+
+```bash
+pdf-namefix ai-suggest ~/Downloads \
+  --inspect-pdf \
+  --limit 20 \
+  --out ai-suggestions.json
+```
+
+Privacy note:
+
+AI-assisted naming sends selected filename, metadata, and first-page text signals to a remote model provider. Do not use it on sensitive documents unless you are comfortable with that.
+
 ## Development
 
 Run tests:
@@ -433,10 +474,12 @@ uv run pdf-namefix --help
 - `docs/ROADMAP.md`
 - `docs/DECISIONS.md`
 - `docs/KNOWN_LIMITATIONS.md`
+- `docs/AI_NAMING.md`
 - `docs/DEMO.md`
 - `docs/FIRST_TIME_USER_GUIDE.md`
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/RELEASE_NOTES_v0.1.0.md`
+- `docs/RELEASE_NOTES_v0.2.0.md`
 - `docs/INSTALL.md`
 - `docs/PACKAGING.md`
 

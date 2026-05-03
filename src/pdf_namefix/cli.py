@@ -1,13 +1,19 @@
+import json
+import os
 from pathlib import Path
 from typing import Annotated
 
 import typer
+from dotenv import load_dotenv
 from rich.console import Console
 
 from pdf_namefix import __version__
+from pdf_namefix.ai_naming import OpenAiNamingClient
 from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
+from pdf_namefix.models import AiNamingInput
 from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.naming_profile import load_naming_profile
 from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
 from pdf_namefix.pdf_inspector import inspect_pdf_files
 from pdf_namefix.preview_report import (
@@ -24,6 +30,8 @@ from pdf_namefix.safety import (
 from pdf_namefix.scanner import scan_pdf_files
 from pdf_namefix.undo import apply_undo_plan, build_undo_plan, find_latest_log
 
+
+load_dotenv()
 
 app = typer.Typer(
     name="pdf-namefix",
@@ -362,6 +370,174 @@ def apply(
 
     if rename_result.failed_count:
         raise typer.Exit(code=1)
+
+
+@app.command("ai-suggest")
+def ai_suggest(
+    paths: Annotated[
+        list[Path],
+        typer.Argument(help="One or more folders containing PDFs."),
+    ],
+    recursive: Annotated[
+        bool,
+        typer.Option("--recursive", "-r", help="Scan folders recursively."),
+    ] = False,
+    inspect_pdf: Annotated[
+        bool,
+        typer.Option(
+            "--inspect-pdf/--no-inspect-pdf",
+            help="Read PDF metadata and first-page text.",
+        ),
+    ] = True,
+    profile: Annotated[
+        Path | None,
+        typer.Option("--profile", help="Optional naming profile YAML file."),
+    ] = None,
+    model: Annotated[
+        str,
+        typer.Option("--model", help="OpenAI model to use."),
+    ] = "gpt-4.1-mini",
+    out: Annotated[
+        Path,
+        typer.Option("--out", help="Output JSON file for AI suggestions."),
+    ] = Path("ai-suggestions.json"),
+    limit: Annotated[
+        int | None,
+        typer.Option("--limit", help="Limit number of files sent to AI."),
+    ] = None,
+    only_unknown: Annotated[
+        bool,
+        typer.Option(
+            "--only-unknown/--all-candidates",
+            help="Only send unknown or low-confidence files to AI.",
+        ),
+    ] = True,
+    yes: Annotated[
+        bool,
+        typer.Option("--yes", "-y", help="Run without interactive confirmation."),
+    ] = False,
+) -> None:
+    """
+    Generate AI-assisted filename suggestions without touching PDF files.
+    """
+    console.print("[bold]AI Suggest mode[/bold]")
+    console.print("This command only writes suggestions. It does not rename files.")
+    console.print("")
+
+    result = scan_pdf_files(paths=paths, recursive=recursive)
+    insights_by_path = inspect_pdf_files(result.pdf_files) if inspect_pdf else {}
+
+    classified_files = classify_pdf_files(
+        result.pdf_files,
+        insights_by_path=insights_by_path,
+    )
+    suggestions = suggest_filenames(classified_files)
+    naming_profile = load_naming_profile(profile)
+
+    candidates = []
+
+    for suggestion in suggestions:
+        classified = suggestion.classified_pdf_file
+
+        if only_unknown and classified.confidence >= naming_profile.skip_if_confidence_below:
+            continue
+
+        candidates.append(suggestion)
+
+    if limit is not None:
+        candidates = candidates[:limit]
+
+    console.print(f"PDF files found: [bold]{len(result.pdf_files)}[/bold]")
+    console.print(f"PDF inspection: [bold]{inspect_pdf}[/bold]")
+    console.print(f"AI candidates: [bold]{len(candidates)}[/bold]")
+    console.print(f"Only unknown/low-confidence: [bold]{only_unknown}[/bold]")
+    console.print(f"Output: [bold]{out}[/bold]")
+
+    if result.warnings:
+        console.print("")
+        console.print("[yellow]Warnings:[/yellow]")
+        for warning in result.warnings:
+            console.print(f"- {warning.path}: {warning.reason}")
+
+    if not candidates:
+        console.print("[yellow]No AI suggestion candidates found.[/yellow]")
+        return
+
+    if not yes:
+        console.print("")
+        confirmed = typer.confirm("Send these file signals to the AI model?")
+        if not confirmed:
+            console.print("[yellow]AI suggestion cancelled.[/yellow]")
+            raise typer.Exit(code=1)
+
+    if not os.getenv("OPENAI_API_KEY"):
+        console.print("[red]OPENAI_API_KEY is not set.[/red]")
+        console.print("Set it with: export OPENAI_API_KEY='your_api_key_here'")
+        raise typer.Exit(code=1)
+
+    client = OpenAiNamingClient()
+    ai_results = []
+
+    for index, suggestion in enumerate(candidates, start=1):
+        classified = suggestion.classified_pdf_file
+        pdf_file = classified.pdf_file
+        insights = insights_by_path.get(pdf_file.path)
+
+        naming_input = AiNamingInput(
+            source_path=pdf_file.path,
+            source_name=pdf_file.path.name,
+            current_document_type=classified.document_type,
+            current_confidence=classified.confidence,
+            current_suggested_name=suggestion.suggested_name,
+            metadata_title=insights.metadata_title if insights else None,
+            metadata_author=insights.metadata_author if insights else None,
+            metadata_subject=insights.metadata_subject if insights else None,
+            first_page_text=insights.first_page_text if insights else None,
+        )
+
+        ai_suggestion = client.suggest_name(
+            naming_input=naming_input,
+            profile=naming_profile,
+            model=model,
+        )
+
+        console.print(
+            f"{index}. {pdf_file.path.name} -> [green]{ai_suggestion.suggested_name}[/green] "
+            f"[dim]confidence={ai_suggestion.confidence:.2f} "
+            f"should_apply={ai_suggestion.should_apply}[/dim]"
+        )
+
+        ai_results.append(
+            {
+                "source_path": str(ai_suggestion.source_path),
+                "suggested_name": ai_suggestion.suggested_name,
+                "document_type": ai_suggestion.document_type.value,
+                "confidence": ai_suggestion.confidence,
+                "reason": ai_suggestion.reason,
+                "should_apply": ai_suggestion.should_apply,
+            }
+        )
+
+    payload = {
+        "model": model,
+        "profile": {
+            "language": naming_profile.language,
+            "pattern": naming_profile.pattern,
+            "max_length": naming_profile.max_length,
+            "date_fallback": naming_profile.date_fallback,
+            "preserve_author_for_books": naming_profile.preserve_author_for_books,
+            "skip_if_confidence_below": naming_profile.skip_if_confidence_below,
+        },
+        "suggestions": ai_results,
+    }
+
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+
+    console.print("")
+    console.print("[bold]AI suggestions exported[/bold]")
+    console.print(f"- Output: {out}")
+    console.print(f"- Suggestions: {len(ai_results)}")
 
 
 @app.command()
