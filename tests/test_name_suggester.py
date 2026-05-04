@@ -83,9 +83,9 @@ def test_build_title_slug_returns_unknown_when_empty():
 
 
 def test_clamp_filename_keeps_short_filename():
-    filename = clamp_filename("unknown-date_rust_notes.pdf", max_length=120)
+    filename = clamp_filename("rust_notes.pdf", max_length=120)
 
-    assert filename == "unknown-date_rust_notes.pdf"
+    assert filename == "rust_notes.pdf"
 
 
 def test_clamp_filename_shortens_long_filename_and_keeps_pdf_suffix():
@@ -102,7 +102,7 @@ def test_suggest_filename_for_notes_pdf():
     suggestion = suggest_filename(classified)
 
     assert classified.document_type == DocumentType.NOTES
-    assert suggestion.suggested_name == "unknown-date_rust_lifetimes_notes.pdf"
+    assert suggestion.suggested_name == "rust_lifetimes_notes.pdf"
 
 
 def test_suggest_filename_for_invoice_with_date():
@@ -122,7 +122,7 @@ def test_suggest_filename_for_unknown_pdf():
     suggestion = suggest_filename(classified)
 
     assert classified.document_type == DocumentType.UNKNOWN
-    assert suggestion.suggested_name == "unknown-date_random_39281_unknown.pdf"
+    assert suggestion.suggested_name == "random_39281_unknown.pdf"
 
 
 def test_suggest_filenames_resolves_collisions_with_suffixes():
@@ -135,12 +135,12 @@ def test_suggest_filenames_resolves_collisions_with_suffixes():
     suggestions = suggest_filenames(classified_files)
 
     assert [suggestion.suggested_name for suggestion in suggestions] == [
-        "unknown-date_unknown_document.pdf",
-        "unknown-date_unknown_document_2.pdf",
+        "unknown_document.pdf",
+        "unknown_document_2.pdf",
     ]
     assert all(suggestion.has_collision for suggestion in suggestions)
     assert suggestions[1].collision_resolved is True
-    assert suggestions[1].original_suggested_name == "unknown-date_unknown_document.pdf"
+    assert suggestions[1].original_suggested_name == "unknown_document.pdf"
 
 
 def test_suggest_filenames_resolves_three_way_collision():
@@ -154,9 +154,9 @@ def test_suggest_filenames_resolves_three_way_collision():
     suggestions = suggest_filenames(classified_files)
 
     assert [suggestion.suggested_name for suggestion in suggestions] == [
-        "unknown-date_unknown_document.pdf",
-        "unknown-date_unknown_document_2.pdf",
-        "unknown-date_unknown_document_3.pdf",
+        "unknown_document.pdf",
+        "unknown_document_2.pdf",
+        "unknown_document_3.pdf",
     ]
 
 
@@ -203,15 +203,15 @@ def test_has_any_collision_returns_false_for_unique_suggestions():
 
 
 def test_strip_unknown_date_prefix_when_reprocessing_generated_name():
-    pdf_file = make_pdf_file("unknown-date_rust_lifetimes_notes.pdf")
+    pdf_file = make_pdf_file("rust_lifetimes_notes.pdf")
     classified = classify_pdf_file(pdf_file)
 
     suggestion = suggest_filename(classified)
 
-    assert suggestion.suggested_name == "unknown-date_rust_lifetimes_notes.pdf"
+    assert suggestion.suggested_name == "rust_lifetimes_notes.pdf"
 
 
 def test_unknown_and_date_are_removed_from_title_slug():
-    slug = build_title_slug(Path("unknown-date_random_document.pdf"), "document")
+    slug = build_title_slug(Path("random_document.pdf"), "document")
 
     assert slug == "random"

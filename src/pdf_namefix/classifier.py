@@ -2,6 +2,7 @@ import re
 from pathlib import Path
 
 from pdf_namefix.models import ClassifiedPdfFile, DocumentType, PdfFile, PdfInsights
+from pdf_namefix.type_resolver import document_type_from_filename_suffix
 
 
 KEYWORD_RULES: list[tuple[DocumentType, tuple[str, ...]]] = [
@@ -381,6 +382,16 @@ def classify_pdf_file(
     pdf_file: PdfFile,
     insights: PdfInsights | None = None,
 ) -> ClassifiedPdfFile:
+    # Check filename suffix first for renamed files
+    resolved_type = document_type_from_filename_suffix(pdf_file.path)
+    if resolved_type and resolved_type != DocumentType.UNKNOWN:
+        return ClassifiedPdfFile(
+            pdf_file=pdf_file,
+            document_type=resolved_type,
+            confidence=0.95,
+            reason=f"Matched filename type suffix: {resolved_type.value}",
+        )
+
     normalized_name = normalize_filename_for_matching(pdf_file.path)
 
     for document_type, keywords in KEYWORD_RULES:

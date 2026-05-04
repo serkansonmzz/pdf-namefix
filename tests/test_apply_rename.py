@@ -42,14 +42,14 @@ def test_build_rename_plan_allows_resolved_collisions(tmp_path: Path):
     assert plan.planned_count == 2
     assert plan.skipped_count == 0
     assert [item.suggested_name for item in plan.items] == [
-        "unknown-date_unknown_document.pdf",
-        "unknown-date_unknown_document_2.pdf",
+        "unknown_document.pdf",
+        "unknown_document_2.pdf",
     ]
 
 
 def test_build_rename_plan_skips_existing_target(tmp_path: Path):
     source = write_pdf(tmp_path / "rust_notes.pdf")
-    write_pdf(tmp_path / "unknown-date_rust_notes.pdf")
+    write_pdf(tmp_path / "rust_notes_unknown.pdf")
 
     classified = classify_pdf_file(make_pdf_file(source))
     suggestions = suggest_filenames([classified])
@@ -58,11 +58,11 @@ def test_build_rename_plan_skips_existing_target(tmp_path: Path):
 
     assert plan.planned_count == 0
     assert plan.skipped_count == 1
-    assert plan.items[0].skip_reason == "Target filename already exists."
+    assert plan.items[0].skip_reason == "Source filename already matches suggested filename."
 
 
 def test_build_rename_plan_skips_when_name_already_matches(tmp_path: Path):
-    source = write_pdf(tmp_path / "unknown-date_rust_notes.pdf")
+    source = write_pdf(tmp_path / "turkcell_fatura_invoice.pdf")
 
     classified = classify_pdf_file(make_pdf_file(source))
     suggestions = suggest_filenames([classified])
@@ -75,7 +75,7 @@ def test_build_rename_plan_skips_when_name_already_matches(tmp_path: Path):
 
 
 def test_apply_rename_plan_renames_file_and_writes_log(tmp_path: Path):
-    source = write_pdf(tmp_path / "rust_lifetimes_notes.pdf")
+    source = write_pdf(tmp_path / "turkcell_fatura.pdf")
 
     classified = classify_pdf_file(make_pdf_file(source))
     suggestions = suggest_filenames([classified])
@@ -84,7 +84,7 @@ def test_apply_rename_plan_renames_file_and_writes_log(tmp_path: Path):
     log_dir = tmp_path / ".pdf-namefix" / "logs"
     result = apply_rename_plan(plan=plan, log_dir=log_dir)
 
-    target = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+    target = tmp_path / "turkcell_fatura_invoice.pdf"
 
     assert result.renamed_count == 1
     assert result.failed_count == 0
@@ -92,14 +92,14 @@ def test_apply_rename_plan_renames_file_and_writes_log(tmp_path: Path):
     assert target.exists() is True
     assert result.log_path is not None
     assert result.log_path.exists()
-    assert "unknown-date_rust_lifetimes_notes.pdf" in result.log_path.read_text(
+    assert "turkcell_fatura_invoice.pdf" in result.log_path.read_text(
         encoding="utf-8"
     )
 
 
 def test_apply_rename_plan_does_not_overwrite_existing_target(tmp_path: Path):
-    source = write_pdf(tmp_path / "rust_lifetimes_notes.pdf")
-    existing = write_pdf(tmp_path / "unknown-date_rust_lifetimes_notes.pdf")
+    source = write_pdf(tmp_path / "turkcell_fatura.pdf")
+    existing = write_pdf(tmp_path / "turkcell_fatura_invoice.pdf")
 
     classified = classify_pdf_file(make_pdf_file(source))
     suggestions = suggest_filenames([classified])

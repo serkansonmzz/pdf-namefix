@@ -49,12 +49,18 @@ TYPE_FOLDER_MAP: dict[DocumentType, str] = {
     DocumentType.WHITEPAPER: "whitepapers",
     DocumentType.STUDY_MATERIAL: "study-materials",
     DocumentType.DOCUMENT: "documents",
-    DocumentType.UNKNOWN: "unknown",
+    DocumentType.UNKNOWN: "needs-review",
 }
 
 
-def folder_for_document_type(document_type: DocumentType) -> str:
-    return TYPE_FOLDER_MAP.get(document_type, "unknown")
+def folder_for_document_type(
+    document_type: DocumentType,
+    folders: dict[str, str] | None = None,
+) -> str:
+    if folders and document_type.value in folders:
+        return folders[document_type.value]
+
+    return TYPE_FOLDER_MAP.get(document_type, "needs-review")
 
 
 def build_organize_plan(
@@ -62,13 +68,17 @@ def build_organize_plan(
     warnings: list[ScanWarning],
     out_dir: Path,
     copy: bool = False,
+    folders: dict[str, str] | None = None,
 ) -> OrganizePlan:
     items: list[OrganizePlanItem] = []
     mode = "copy" if copy else "move"
 
     for classified in classified_files:
         pdf_file = classified.pdf_file
-        folder_name = folder_for_document_type(classified.document_type)
+        folder_name = folder_for_document_type(
+            classified.document_type,
+            folders=folders,
+        )
         target_dir = out_dir.expanduser() / folder_name
         target_path = target_dir / pdf_file.path.name
 

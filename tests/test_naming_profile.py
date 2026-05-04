@@ -5,7 +5,7 @@ def test_load_default_naming_profile():
     profile = load_default_naming_profile()
 
     assert profile.language == "english"
-    assert profile.pattern == "{date}_{title}_{type}"
+    assert profile.pattern == "{title}_{type}"
     assert profile.max_length == 120
     assert profile.skip_if_confidence_below == 0.70
 

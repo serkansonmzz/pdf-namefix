@@ -28,7 +28,8 @@ ai-suggestions.json
 generated/
 reports/
 RAPOR.md
-SPEC.md
+[Ss][Pp][Ee][Cc].md
+[Ss][Pp][Ee][Cc]_*.md
 # OS files
 .DS_Store
 Thumbs.db
