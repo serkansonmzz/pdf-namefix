@@ -11,6 +11,8 @@ DEFAULT_NAMING_PROFILE = {
     "date_fallback": "unknown-date",
     "preserve_author_for_books": True,
     "skip_if_confidence_below": 0.70,
+    "ai_mode": "practical",
+    "allow_known_work_inference": True,
     "rules": [
         "Use lowercase snake_case filenames.",
         "Keep filenames short but descriptive.",
@@ -18,6 +20,8 @@ DEFAULT_NAMING_PROFILE = {
         "Use unknown-date if no reliable date is available.",
         "Do not include private personal identifiers unless they are already in the filename.",
         "Preserve .pdf extension.",
+        "If the filename clearly matches a public book title and author, you may classify it as a book.",
+        "Prefer specific types like book, guide, reference, language_learning, study_material over generic document.",
     ],
 }
 
@@ -30,6 +34,8 @@ class NamingProfile:
     date_fallback: str
     preserve_author_for_books: bool
     skip_if_confidence_below: float
+    ai_mode: str
+    allow_known_work_inference: bool
     rules: list[str]
 
 
@@ -41,6 +47,8 @@ def load_default_naming_profile() -> NamingProfile:
         date_fallback=str(DEFAULT_NAMING_PROFILE["date_fallback"]),
         preserve_author_for_books=bool(DEFAULT_NAMING_PROFILE["preserve_author_for_books"]),
         skip_if_confidence_below=float(DEFAULT_NAMING_PROFILE["skip_if_confidence_below"]),
+        ai_mode=str(DEFAULT_NAMING_PROFILE["ai_mode"]),
+        allow_known_work_inference=bool(DEFAULT_NAMING_PROFILE["allow_known_work_inference"]),
         rules=list(DEFAULT_NAMING_PROFILE["rules"]),
     )
 
@@ -66,6 +74,13 @@ def load_naming_profile(path: Path | None = None) -> NamingProfile:
             data.get(
                 "skip_if_confidence_below",
                 DEFAULT_NAMING_PROFILE["skip_if_confidence_below"],
+            )
+        ),
+        ai_mode=str(data.get("ai_mode", DEFAULT_NAMING_PROFILE["ai_mode"])),
+        allow_known_work_inference=bool(
+            data.get(
+                "allow_known_work_inference",
+                DEFAULT_NAMING_PROFILE["allow_known_work_inference"],
             )
         ),
         rules=list(data.get("rules", DEFAULT_NAMING_PROFILE["rules"])),

@@ -8,10 +8,15 @@ from dotenv import load_dotenv
 from rich.console import Console
 
 from pdf_namefix import __version__
-from pdf_namefix.ai_naming import OpenAiNamingClient
+from pdf_namefix.ai_naming import OpenAiNamingClient, select_ai_candidates
+from pdf_namefix.ai_report_exporter import write_ai_report
+from pdf_namefix.apply_ai_suggestions import (
+    apply_ai_suggestions_to_filename_suggestions,
+    load_ai_suggestion_map,
+)
 from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
 from pdf_namefix.classifier import classify_pdf_files
-from pdf_namefix.models import AiNamingInput
+from pdf_namefix.models import AiNamingInput, AiNamingSuggestion
 from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_naming_profile
 from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
@@ -99,6 +104,13 @@ def preview(
             help="Read PDF metadata and first-page text to improve classification.",
         ),
     ] = False,
+    ai_suggestions: Annotated[
+        Path | None,
+        typer.Option(
+            "--ai-suggestions",
+            help="Show reviewed AI suggestions alongside deterministic preview.",
+        ),
+    ] = None,
     output_format: Annotated[
         str,
         typer.Option(
@@ -136,6 +148,15 @@ def preview(
         insights_by_path=insights_by_path,
     )
     suggestions = suggest_filenames(classified_files)
+
+    if ai_suggestions is not None:
+        ai_map = load_ai_suggestion_map(ai_suggestions)
+        suggestions = apply_ai_suggestions_to_filename_suggestions(
+            suggestions=suggestions,
+            ai_map=ai_map,
+            min_confidence=0.0,
+        )
+
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
 
     if output_format not in SUPPORTED_REPORT_FORMATS:
@@ -289,6 +310,20 @@ def apply(
             help="Read PDF metadata and first-page text to improve classification.",
         ),
     ] = False,
+    ai_suggestions: Annotated[
+        Path | None,
+        typer.Option(
+            "--ai-suggestions",
+            help="Use reviewed AI suggestions JSON as rename input.",
+        ),
+    ] = None,
+    ai_min_confidence: Annotated[
+        float,
+        typer.Option(
+            "--ai-min-confidence",
+            help="Minimum AI confidence required for apply.",
+        ),
+    ] = 0.80,
 ) -> None:
     """
     Apply safe PDF filename changes.
@@ -307,6 +342,15 @@ def apply(
         insights_by_path=insights_by_path,
     )
     suggestions = suggest_filenames(classified_files)
+
+    if ai_suggestions is not None:
+        ai_map = load_ai_suggestion_map(ai_suggestions)
+        suggestions = apply_ai_suggestions_to_filename_suggestions(
+            suggestions=suggestions,
+            ai_map=ai_map,
+            min_confidence=ai_min_confidence,
+        )
+
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
     plan = build_rename_plan(
         suggestions=report.suggestions,
@@ -318,6 +362,9 @@ def apply(
     console.print(f"PDF files found: [bold]{report.summary.total_files}[/bold]")
     console.print(f"Include unknown: [bold]{include_unknown}[/bold]")
     console.print(f"Minimum confidence: [bold]{min_confidence}[/bold]")
+    if ai_suggestions:
+        console.print(f"AI suggestions: [bold]{ai_suggestions}[/bold]")
+        console.print(f"AI min confidence: [bold]{ai_min_confidence}[/bold]")
     console.print(f"Planned renames: [bold]{plan.planned_count}[/bold]")
     console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
     console.print(f"Warnings: [bold]{len(plan.warnings)}[/bold]")
@@ -399,19 +446,32 @@ def ai_suggest(
     ] = "gpt-4.1-mini",
     out: Annotated[
         Path,
-        typer.Option("--out", help="Output JSON file for AI suggestions."),
+        typer.Option("--out", help="Output file for AI suggestions."),
     ] = Path("ai-suggestions.json"),
+    output_format: Annotated[
+        str,
+        typer.Option("--format", help="Output format: json or markdown."),
+    ] = "json",
+    overwrite_report: Annotated[
+        bool,
+        typer.Option("--overwrite-report", help="Overwrite existing AI suggestion report."),
+    ] = False,
     limit: Annotated[
         int | None,
         typer.Option("--limit", help="Limit number of files sent to AI."),
     ] = None,
-    only_unknown: Annotated[
+    unknown_only: Annotated[
         bool,
         typer.Option(
-            "--only-unknown/--all-candidates",
-            help="Only send unknown or low-confidence files to AI.",
+            "--unknown-only",
+            "--only-unknown",
+            help="Only send files classified as unknown.",
         ),
-    ] = True,
+    ] = False,
+    low_confidence: Annotated[
+        bool,
+        typer.Option("--low-confidence", help="Only send low-confidence files to AI."),
+    ] = False,
     yes: Annotated[
         bool,
         typer.Option("--yes", "-y", help="Run without interactive confirmation."),
@@ -434,15 +494,16 @@ def ai_suggest(
     suggestions = suggest_filenames(classified_files)
     naming_profile = load_naming_profile(profile)
 
-    candidates = []
+    # Default to low-confidence if neither flag is set
+    if not unknown_only and not low_confidence:
+        low_confidence = True
 
-    for suggestion in suggestions:
-        classified = suggestion.classified_pdf_file
-
-        if only_unknown and classified.confidence >= naming_profile.skip_if_confidence_below:
-            continue
-
-        candidates.append(suggestion)
+    candidates = select_ai_candidates(
+        suggestions=suggestions,
+        unknown_only=unknown_only,
+        low_confidence=low_confidence,
+        threshold=naming_profile.skip_if_confidence_below,
+    )
 
     if limit is not None:
         candidates = candidates[:limit]
@@ -450,7 +511,8 @@ def ai_suggest(
     console.print(f"PDF files found: [bold]{len(result.pdf_files)}[/bold]")
     console.print(f"PDF inspection: [bold]{inspect_pdf}[/bold]")
     console.print(f"AI candidates: [bold]{len(candidates)}[/bold]")
-    console.print(f"Only unknown/low-confidence: [bold]{only_unknown}[/bold]")
+    console.print(f"Unknown only: [bold]{unknown_only}[/bold]")
+    console.print(f"Low confidence: [bold]{low_confidence}[/bold]")
     console.print(f"Output: [bold]{out}[/bold]")
 
     if result.warnings:
@@ -476,7 +538,7 @@ def ai_suggest(
         raise typer.Exit(code=1)
 
     client = OpenAiNamingClient()
-    ai_results = []
+    ai_results: list[AiNamingSuggestion] = []
 
     for index, suggestion in enumerate(candidates, start=1):
         classified = suggestion.classified_pdf_file
@@ -502,41 +564,41 @@ def ai_suggest(
         )
 
         console.print(
-            f"{index}. {pdf_file.path.name} -> [green]{ai_suggestion.suggested_name}[/green] "
-            f"[dim]confidence={ai_suggestion.confidence:.2f} "
-            f"should_apply={ai_suggestion.should_apply}[/dim]"
+            f"{index}. {pdf_file.path.name}"
+        )
+        console.print(
+            f"   current: {suggestion.suggested_name} "
+            f"[{classified.document_type.value} confidence={classified.confidence:.2f}]"
+        )
+        console.print(
+            f"   AI:      [green]{ai_suggestion.ai_suggested_name}[/green] "
+            f"[{ai_suggestion.ai_document_type.value}/{ai_suggestion.semantic_type} "
+            f"confidence={ai_suggestion.confidence:.2f} "
+            f"should_apply={ai_suggestion.should_apply}]"
+        )
+        console.print(
+            f"   [dim]improvement: {ai_suggestion.improvement}[/dim]"
         )
 
-        ai_results.append(
-            {
-                "source_path": str(ai_suggestion.source_path),
-                "suggested_name": ai_suggestion.suggested_name,
-                "document_type": ai_suggestion.document_type.value,
-                "confidence": ai_suggestion.confidence,
-                "reason": ai_suggestion.reason,
-                "should_apply": ai_suggestion.should_apply,
-            }
+        ai_results.append(ai_suggestion)
+
+    try:
+        written = write_ai_report(
+            suggestions=ai_results,
+            model=model,
+            out_path=out,
+            output_format=output_format,
+            overwrite=overwrite_report,
         )
-
-    payload = {
-        "model": model,
-        "profile": {
-            "language": naming_profile.language,
-            "pattern": naming_profile.pattern,
-            "max_length": naming_profile.max_length,
-            "date_fallback": naming_profile.date_fallback,
-            "preserve_author_for_books": naming_profile.preserve_author_for_books,
-            "skip_if_confidence_below": naming_profile.skip_if_confidence_below,
-        },
-        "suggestions": ai_results,
-    }
-
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
+    except FileExistsError as exc:
+        console.print(f"[red]{exc}[/red]")
+        console.print("Use --overwrite-report to replace it.")
+        raise typer.Exit(code=1)
 
     console.print("")
     console.print("[bold]AI suggestions exported[/bold]")
-    console.print(f"- Output: {out}")
+    console.print(f"- Format: {output_format}")
+    console.print(f"- Output: {written}")
     console.print(f"- Suggestions: {len(ai_results)}")
 
 

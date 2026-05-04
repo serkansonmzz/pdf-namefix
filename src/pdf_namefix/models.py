@@ -121,10 +121,16 @@ class AiNamingInput:
 @dataclass(frozen=True)
 class AiNamingSuggestion:
     source_path: Path
-    suggested_name: str
-    document_type: DocumentType
+    source_name: str
+    current_suggested_name: str
+    current_document_type: DocumentType
+    current_confidence: float
+    ai_suggested_name: str
+    ai_document_type: DocumentType
+    semantic_type: str
     confidence: float
     reason: str
+    improvement: str
     should_apply: bool
 
 

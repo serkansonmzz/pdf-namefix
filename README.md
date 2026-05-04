@@ -420,6 +420,8 @@ Optional AI-assisted suggestions are available with:
 ```bash
 pdf-namefix ai-suggest ~/Downloads \
   --inspect-pdf \
+  --unknown-only \
+  --format json \
   --out ai-suggestions.json
 ```
 
@@ -428,7 +430,7 @@ This command:
 - reads current preview/classification signals
 - uses PDF metadata and first-page text if enabled
 - sends selected file signals to the AI model
-- writes suggestions to JSON
+- writes suggestions to JSON or Markdown
 - does not rename files
 - does not move files
 - does not delete files
@@ -439,6 +441,51 @@ Set your API key:
 export OPENAI_API_KEY="your_api_key_here"
 ```
 
+### Useful AI Suggestions Workflow
+
+Generate AI suggestions as JSON and Markdown:
+
+```bash
+pdf-namefix ai-suggest ~/Downloads \
+  --inspect-pdf \
+  --unknown-only \
+  --format json \
+  --out ~/Desktop/ai-suggestions.json \
+  --yes
+```
+
+Human-readable report:
+
+```bash
+pdf-namefix ai-suggest ~/Downloads \
+  --inspect-pdf \
+  --unknown-only \
+  --format markdown \
+  --out ~/Desktop/ai-suggestions.md \
+  --yes
+```
+
+Preview with reviewed AI suggestions:
+
+```bash
+pdf-namefix preview ~/Downloads \
+  --ai-suggestions ~/Desktop/ai-suggestions.json
+```
+
+Apply reviewed AI suggestions safely:
+
+```bash
+pdf-namefix apply ~/Downloads \
+  --ai-suggestions ~/Desktop/ai-suggestions.json
+```
+
+Safety:
+
+- AI suggestions are generated first.
+- You review them.
+- Apply uses the reviewed JSON file.
+- Apply still uses no-overwrite and undo-safe behavior.
+
 By default, only unknown or low-confidence files are sent to AI.
 
 Limit requests:
@@ -446,6 +493,7 @@ Limit requests:
 ```bash
 pdf-namefix ai-suggest ~/Downloads \
   --inspect-pdf \
+  --unknown-only \
   --limit 20 \
   --out ai-suggestions.json
 ```

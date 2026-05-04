@@ -4,19 +4,25 @@ from pathlib import Path
 from pdf_namefix.ai_naming import (
     OpenAiNamingClient,
     build_ai_prompt,
+    clamp_confidence,
     sanitize_ai_filename,
+    select_ai_candidates,
 )
-from pdf_namefix.models import AiNamingInput, DocumentType
+from pdf_namefix.classifier import classify_pdf_file
+from pdf_namefix.models import AiNamingInput, DocumentType, PdfFile
+from pdf_namefix.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_default_naming_profile
 
 
 class FakeResponse:
     output_text = json.dumps(
         {
-            "suggested_name": "Essential Grammar in Use / Cambridge.pdf",
-            "document_type": "language_learning",
+            "ai_suggested_name": "Essential Grammar in Use / Cambridge.pdf",
+            "ai_document_type": "language_learning",
+            "semantic_type": "grammar_reference",
             "confidence": 0.82,
             "reason": "Metadata and first page mention the title and publisher.",
+            "improvement": "Improved classification from unknown to language_learning.",
             "should_apply": True,
         }
     )
@@ -72,6 +78,14 @@ def test_build_ai_prompt_contains_profile_and_input():
     assert "Essential Grammar in Use" in prompt
     assert "unknown-date_file0001_unknown.pdf" in prompt
     assert "Do not invent dates" in prompt
+    assert "known public book title" in prompt
+    assert "Prefer specific types" in prompt
+
+
+def test_clamp_confidence():
+    assert clamp_confidence(-1) == 0.0
+    assert clamp_confidence(2) == 1.0
+    assert clamp_confidence(0.5) == 0.5
 
 
 def test_openai_naming_client_parses_structured_output():
@@ -86,8 +100,23 @@ def test_openai_naming_client_parses_structured_output():
     )
 
     assert suggestion.source_path == Path("File0001.pdf")
-    assert suggestion.suggested_name == "essential_grammar_in_use_cambridge.pdf"
-    assert suggestion.document_type == DocumentType.LANGUAGE_LEARNING
+    assert suggestion.ai_suggested_name == "essential_grammar_in_use_cambridge.pdf"
+    assert suggestion.ai_document_type == DocumentType.LANGUAGE_LEARNING
+    assert suggestion.semantic_type == "grammar_reference"
     assert suggestion.confidence == 0.82
     assert suggestion.should_apply is True
     assert fake_client.responses.last_kwargs["text"]["format"]["type"] == "json_schema"
+
+
+def test_select_ai_candidates_unknown_only():
+    files = [
+        PdfFile(path=Path("random.pdf"), source_root=Path("."), size_bytes=100),
+        PdfFile(path=Path("clean_architecture_book.pdf"), source_root=Path("."), size_bytes=100),
+    ]
+    classified = [classify_pdf_file(file) for file in files]
+    suggestions = suggest_filenames(classified)
+
+    selected = select_ai_candidates(suggestions, unknown_only=True)
+
+    assert len(selected) == 1
+    assert selected[0].classified_pdf_file.document_type == DocumentType.UNKNOWN
