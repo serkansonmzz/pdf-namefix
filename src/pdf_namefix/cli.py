@@ -104,6 +104,10 @@ def preview(
             help="Read PDF metadata and first-page text to improve classification.",
         ),
     ] = False,
+    profile: Annotated[
+        Path | None,
+        typer.Option("--profile", help="Optional naming profile YAML file."),
+    ] = None,
     ai_suggestions: Annotated[
         Path | None,
         typer.Option(
@@ -147,7 +151,8 @@ def preview(
         result.pdf_files,
         insights_by_path=insights_by_path,
     )
-    suggestions = suggest_filenames(classified_files)
+    naming_profile = load_naming_profile(profile)
+    suggestions = suggest_filenames(classified_files, profile=naming_profile)
 
     if ai_suggestions is not None:
         ai_map = load_ai_suggestion_map(ai_suggestions)
@@ -303,6 +308,10 @@ def apply(
             help="Minimum confidence required for default apply.",
         ),
     ] = 0.7,
+    profile: Annotated[
+        Path | None,
+        typer.Option("--profile", help="Optional naming profile YAML file."),
+    ] = None,
     inspect_pdf: Annotated[
         bool,
         typer.Option(
@@ -341,7 +350,8 @@ def apply(
         result.pdf_files,
         insights_by_path=insights_by_path,
     )
-    suggestions = suggest_filenames(classified_files)
+    naming_profile = load_naming_profile(profile)
+    suggestions = suggest_filenames(classified_files, profile=naming_profile)
 
     if ai_suggestions is not None:
         ai_map = load_ai_suggestion_map(ai_suggestions)
@@ -491,8 +501,8 @@ def ai_suggest(
         result.pdf_files,
         insights_by_path=insights_by_path,
     )
-    suggestions = suggest_filenames(classified_files)
     naming_profile = load_naming_profile(profile)
+    suggestions = suggest_filenames(classified_files, profile=naming_profile)
 
     # Default to low-confidence if neither flag is set
     if not unknown_only and not low_confidence:
@@ -631,6 +641,10 @@ def organize(
             help="Allow output folder inside an input folder.",
         ),
     ] = False,
+    profile: Annotated[
+        Path | None,
+        typer.Option("--profile", help="Optional naming profile YAML file."),
+    ] = None,
     inspect_pdf: Annotated[
         bool,
         typer.Option(
@@ -649,6 +663,8 @@ def organize(
     result = scan_pdf_files(paths=paths, recursive=recursive)
     insights_by_path = inspect_pdf_files(result.pdf_files) if inspect_pdf else {}
 
+    naming_profile = load_naming_profile(profile)
+
     classified_files = classify_pdf_files(
         result.pdf_files,
         insights_by_path=insights_by_path,
@@ -665,6 +681,7 @@ def organize(
         warnings=result.warnings,
         out_dir=out,
         copy=copy,
+        folders=naming_profile.folders,
     )
 
     if copy:

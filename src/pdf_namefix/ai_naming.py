@@ -107,6 +107,8 @@ Naming profile:
 - pattern: {profile.pattern}
 - max_length: {profile.max_length}
 - date_fallback: {profile.date_fallback}
+- include_unknown_date_prefix: {profile.include_unknown_date_prefix}
+- include_type_suffix: {profile.include_type_suffix}
 - preserve_author_for_books: {profile.preserve_author_for_books}
 - skip_if_confidence_below: {profile.skip_if_confidence_below}
 - ai_mode: {profile.ai_mode}
@@ -128,7 +130,8 @@ PDF metadata/text signals:
 - first_page_text: {naming_input.first_page_text}
 
 Important behavior:
-- Do not invent dates. Use {profile.date_fallback} if no reliable date exists.
+- Do not invent dates. If profile.date_fallback is "none", do not add a date prefix.
+- Only add unknown-date prefix if include_unknown_date_prefix is true and date_fallback is not "none".
 - Do not use generic document if a more specific type is reasonably clear.
 - If filename clearly contains a known public book title or title + author, you may classify it as book.
 - If it is a technical setup/tutorial document, prefer guide or study_material.

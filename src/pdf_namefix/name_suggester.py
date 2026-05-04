@@ -3,6 +3,7 @@ import unicodedata
 from pathlib import Path
 
 from pdf_namefix.models import ClassifiedPdfFile, FilenameSuggestion
+from pdf_namefix.naming_profile import NamingProfile, load_default_naming_profile
 
 
 DATE_PATTERNS = [
@@ -111,15 +112,33 @@ def clamp_filename(filename: str, max_length: int = 120) -> str:
     return f"{filename[:available].rstrip('_')}{suffix}"
 
 
-def suggest_filename(classified_pdf_file: ClassifiedPdfFile) -> FilenameSuggestion:
+def suggest_filename(
+    classified_pdf_file: ClassifiedPdfFile,
+    profile: NamingProfile | None = None,
+) -> FilenameSuggestion:
+    profile = profile or load_default_naming_profile()
+
     pdf_file = classified_pdf_file.pdf_file
     document_type = classified_pdf_file.document_type.value
 
-    date_part = extract_date_from_name(pdf_file.path)
+    extracted_date = extract_date_from_name(pdf_file.path)
     title_slug = build_title_slug(pdf_file.path, document_type=document_type)
 
-    suggested_name = f"{date_part}_{title_slug}_{document_type}.pdf"
-    suggested_name = clamp_filename(suggested_name)
+    # Date prefix logic based on profile
+    if extracted_date != "unknown-date":
+        prefix = f"{extracted_date}_"
+    elif profile.include_unknown_date_prefix and profile.date_fallback != "none":
+        prefix = f"{profile.date_fallback}_"
+    else:
+        prefix = ""
+
+    # Type suffix logic based on profile
+    if profile.include_type_suffix:
+        filename = f"{prefix}{title_slug}_{document_type}.pdf"
+    else:
+        filename = f"{prefix}{title_slug}.pdf"
+
+    suggested_name = clamp_filename(filename, profile.max_length)
 
     return FilenameSuggestion(
         classified_pdf_file=classified_pdf_file,
@@ -198,9 +217,12 @@ def resolve_suggestion_collisions(
 def suggest_filenames(
     classified_pdf_files: list[ClassifiedPdfFile],
     existing_names: set[str] | None = None,
+    profile: NamingProfile | None = None,
 ) -> list[FilenameSuggestion]:
+    profile = profile or load_default_naming_profile()
+
     suggestions = [
-        suggest_filename(classified_pdf_file)
+        suggest_filename(classified_pdf_file, profile=profile)
         for classified_pdf_file in classified_pdf_files
     ]
 

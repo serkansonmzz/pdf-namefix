@@ -43,10 +43,12 @@ clean_architecture_book.pdf
 Example suggested names:
 
 ```text
-unknown-date_rust_lifetimes_notes.pdf
+rust_lifetimes_notes.pdf
 2026-04-29_turkcell_fatura_invoice.pdf
-unknown-date_clean_architecture_book.pdf
+clean_architecture_book.pdf
 ```
+
+**Note:** v0.2.2 produces cleaner filenames without the `unknown-date_` prefix by default.
 
 ## Real-World Usage Notes
 
@@ -170,8 +172,48 @@ OrganizedPDFs/
   papers/
   slides/
   manuals/
-  unknown/
+  needs-review/  # Previously "unknown"
 ```
+
+### 4. Custom Naming Profiles (v0.2.2+)
+
+You can customize naming behavior using YAML profiles:
+
+```bash
+# Create profile directory
+mkdir -p ~/.pdf-namefix
+
+# Copy example profile
+cp examples/naming-profile.example.yml ~/.pdf-namefix/profile.yml
+
+# Edit profile to your needs
+nano ~/.pdf-namefix/profile.yml
+```
+
+Example profile for Turkish users:
+
+```yaml
+language: turkish
+pattern: "{title}_{type}"
+date_fallback: "none"
+include_unknown_date_prefix: false
+include_type_suffix: true
+folders:
+  invoice: faturalar
+  book: kitaplik
+  unknown: incelenecek
+  notes: notlarim
+```
+
+Use custom profile with any command:
+
+```bash
+pdf-namefix preview ~/Downloads --profile ~/.pdf-namefix/profile.yml
+pdf-namefix apply ~/Downloads --profile ~/.pdf-namefix/profile.yml --yes
+pdf-namefix organize ~/Downloads --out ~/Documents/OrganizedPDFs --profile ~/.pdf-namefix/profile.yml
+```
+
+See [examples/naming-profile.example.yml](examples/naming-profile.example.yml) for all available options.
 
 ## Recommended Safe Workflow
 
@@ -194,10 +236,10 @@ No files will be renamed in this command.
 PDF files found: 5
 
 1. /Users/me/Downloads/rust_lifetimes_notes.pdf (12.0 KB) [notes] confidence=0.9
-   → unknown-date_rust_lifetimes_notes.pdf
+   → rust_lifetimes_notes.pdf
 
 2. /Users/me/Downloads/clean_architecture_book.pdf (5.1 MB) [book] confidence=0.9
-   → unknown-date_clean_architecture_book.pdf
+   → clean_architecture_book.pdf
 
 3. /Users/me/Downloads/turkcell_fatura_2026-04-29.pdf (90.0 KB) [invoice] confidence=0.9
    → 2026-04-29_turkcell_fatura_invoice.pdf

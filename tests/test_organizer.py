@@ -32,7 +32,7 @@ def test_folder_for_document_type_maps_book_and_ebook_to_books():
 
 
 def test_folder_for_document_type_maps_unknown():
-    assert folder_for_document_type(DocumentType.UNKNOWN) == "unknown"
+    assert folder_for_document_type(DocumentType.UNKNOWN) == "needs-review"
 
 
 def test_build_organize_plan_creates_target_path(tmp_path: Path):

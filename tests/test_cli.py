@@ -57,8 +57,8 @@ def test_preview_accepts_multiple_paths(tmp_path):
     assert "two_book" in result.output
     assert "invoice" in result.output
     assert "book" in result.output
-    assert "unknown-date_one_invoice.pdf" in result.output
-    assert "unknown-date_two_book.pdf" in result.output
+    assert "one_invoice.pdf" in result.output
+    assert "two_book.pdf" in result.output
 
 
 def test_preview_recursive_flag(tmp_path):
@@ -73,7 +73,7 @@ def test_preview_recursive_flag(tmp_path):
     assert "inside" in result.output
     assert "slide" in result.output
     assert "confidence=0.9" in result.output
-    assert "unknown-date_inside_slides.pdf" in result.output
+    assert "inside_slides.pdf" in result.output
 
 
 def test_preview_unknown_file_type(tmp_path):
@@ -86,7 +86,7 @@ def test_preview_unknown_file_type(tmp_path):
     assert "PDF files found: 1" in result.output
     assert "random_39281" in result.output
     assert "unknown" in result.output
-    assert "unknown-date_random_39281_unknown.pdf" in result.output
+    assert "random_39281_unknown.pdf" in result.output
 
 
 def test_preview_missing_path_shows_warning(tmp_path):
@@ -101,12 +101,12 @@ def test_preview_missing_path_shows_warning(tmp_path):
 
 
 def test_apply_renames_file_with_yes(tmp_path):
-    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf = tmp_path / "turkcell_fatura.pdf"
     pdf.write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
 
-    target = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+    target = tmp_path / "turkcell_fatura_invoice.pdf"
 
     assert result.exit_code == 0
     assert "Apply mode" in result.output
@@ -134,7 +134,7 @@ def test_apply_include_unknown_renames_unknown(tmp_path):
 
     result = runner.invoke(app, ["apply", str(tmp_path), "--include-unknown", "--yes"])
 
-    target = tmp_path / "unknown-date_random_39281_unknown.pdf"
+    target = tmp_path / "random_39281_unknown.pdf"
 
     assert result.exit_code == 0
     assert "Planned renames: 1" in result.output
@@ -150,8 +150,8 @@ def test_apply_resolves_collision_with_suffixes(tmp_path):
 
     result = runner.invoke(app, ["apply", str(tmp_path), "--include-unknown", "--min-confidence", "0.0", "--yes"])
 
-    first = tmp_path / "unknown-date_unknown_document.pdf"
-    second = tmp_path / "unknown-date_unknown_document_2.pdf"
+    first = tmp_path / "unknown_document.pdf"
+    second = tmp_path / "unknown_document_2.pdf"
 
     assert result.exit_code == 0
     assert "Renamed: 2" in result.output
@@ -162,12 +162,12 @@ def test_apply_resolves_collision_with_suffixes(tmp_path):
 
 
 def test_apply_cancelled_without_confirmation(tmp_path):
-    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf = tmp_path / "turkcell_fatura.pdf"
     pdf.write_text("test", encoding="utf-8")
 
     result = runner.invoke(app, ["apply", str(tmp_path)], input="n\n")
 
-    target = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+    target = tmp_path / "turkcell_fatura_invoice.pdf"
 
     assert result.exit_code == 1
     assert "Apply cancelled" in result.output
@@ -416,12 +416,12 @@ def test_organize_empty_folder_does_nothing(tmp_path):
 def test_undo_last_reverts_apply(tmp_path, monkeypatch):
     monkeypatch.chdir(tmp_path)
 
-    pdf = tmp_path / "rust_lifetimes_notes.pdf"
+    pdf = tmp_path / "turkcell_fatura.pdf"
     pdf.write_text("test", encoding="utf-8")
 
     apply_result = runner.invoke(app, ["apply", str(tmp_path), "--yes"])
 
-    renamed = tmp_path / "unknown-date_rust_lifetimes_notes.pdf"
+    renamed = tmp_path / "turkcell_fatura_invoice.pdf"
 
     assert apply_result.exit_code == 0
     assert renamed.exists() is True
