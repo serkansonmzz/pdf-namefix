@@ -319,3 +319,27 @@ By default, only unknown or low-confidence files are sent to AI.
 Reason:
 
 This reduces cost and keeps AI focused on cases where deterministic rules are weak.
+
+## Decision 040: AI suggestions show current vs improved output
+
+AI suggestion reports include current deterministic suggestion and AI-improved suggestion.
+
+Reason:
+
+Users need to see what value AI added.
+
+## Decision 041: Markdown is for review, JSON is for apply
+
+AI Markdown reports are human-readable. AI JSON reports are machine-readable and can be passed to apply.
+
+Reason:
+
+Human review and machine execution should use different optimized formats.
+
+## Decision 042: Applying AI suggestions requires an explicit JSON file
+
+`apply --ai-suggestions <file>` uses reviewed AI suggestion JSON.
+
+Reason:
+
+Live AI output should not directly mutate the filesystem.

@@ -4,6 +4,8 @@ max_length: 120
 date_fallback: "unknown-date"
 preserve_author_for_books: true
 skip_if_confidence_below: 0.70
+ai_mode: practical
+allow_known_work_inference: true
 rules:
   - Use lowercase snake_case filenames.
   - Keep filenames short but descriptive.
@@ -11,3 +13,5 @@ rules:
   - Use unknown-date if no reliable date exists.
   - Preserve author names for books when useful.
   - Preserve .pdf extension.
+  - If the filename clearly matches a public book title and author, classify it as book.
+  - Prefer specific document types over generic document.

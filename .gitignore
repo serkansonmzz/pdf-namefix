@@ -27,7 +27,8 @@ rename-log.jsonl
 ai-suggestions.json
 generated/
 reports/
-
+RAPOR.md
+SPEC.md
 # OS files
 .DS_Store
 Thumbs.db
