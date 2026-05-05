@@ -6,12 +6,12 @@ from rich.console import Console
 
 from pdf_namefix.ai_naming import OpenAiNamingClient, select_ai_candidates
 from pdf_namefix.infrastructure.ai_report_exporter import write_ai_report
-from pdf_namefix.classifier import classify_pdf_files
+from pdf_namefix.services.classifier import classify_pdf_files
 from pdf_namefix.models import AiNamingInput, AiNamingSuggestion
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_naming_profile
-from pdf_namefix.pdf_inspector import inspect_pdf_files
-from pdf_namefix.scanner import scan_pdf_files
+from pdf_namefix.services.pdf_inspector import inspect_pdf_files
+from pdf_namefix.services.scanner import scan_pdf_files
 
 
 def run_ai_suggest(

@@ -7,17 +7,17 @@ from pdf_namefix.apply_ai_suggestions import (
     apply_ai_suggestions_to_filename_suggestions,
     load_ai_suggestion_map,
 )
-from pdf_namefix.classifier import classify_pdf_files
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.classifier import classify_pdf_files
+from pdf_namefix.services.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_naming_profile
-from pdf_namefix.pdf_inspector import inspect_pdf_files
-from pdf_namefix.preview_report import (
+from pdf_namefix.services.pdf_inspector import inspect_pdf_files
+from pdf_namefix.services.preview_report import (
     build_preview_report,
     filter_suggestions_by_type,
     limit_suggestions,
 )
 from pdf_namefix.infrastructure.report_exporter import SUPPORTED_REPORT_FORMATS, write_report
-from pdf_namefix.scanner import scan_pdf_files
+from pdf_namefix.services.scanner import scan_pdf_files
 
 
 def run_preview(
