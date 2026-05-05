@@ -82,6 +82,15 @@ def test_build_ai_prompt_contains_profile_and_input():
     assert "Prefer specific types" in prompt
 
 
+def test_ai_prompt_prefers_original_filename_over_weak_metadata():
+    profile = load_default_naming_profile()
+    prompt = build_ai_prompt(make_input(), profile)
+
+    assert "Prefer the original filename title when it is meaningful." in prompt
+    assert "metadata title as a supporting signal" in prompt
+    assert "Do not replace a clear filename topic with a vague metadata title." in prompt
+
+
 def test_clamp_confidence():
     assert clamp_confidence(-1) == 0.0
     assert clamp_confidence(2) == 1.0

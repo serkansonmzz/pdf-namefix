@@ -343,3 +343,19 @@ Human review and machine execution should use different optimized formats.
 Reason:
 
 Live AI output should not directly mutate the filesystem.
+
+## Decision 047: AI apply threshold follows the naming profile
+
+AI suggestions are applied when `should_apply=true` and confidence is above the profile threshold.
+
+Reason:
+
+A fixed `0.80` threshold was too conservative for safe rename workflows. The tool already has preview, confirmation, no-overwrite behavior, logs, and undo.
+
+## Decision 048: PDF metadata is a supporting signal, not the main source of truth
+
+AI should not replace a clear filename topic with weak or unrelated metadata.
+
+Reason:
+
+Real PDFs often contain generic or stale metadata titles.

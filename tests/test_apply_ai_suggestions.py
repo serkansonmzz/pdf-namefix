@@ -93,3 +93,54 @@ def test_apply_ai_suggestions_ignores_low_confidence():
     )
 
     assert updated[0].suggested_name == suggestions[0].suggested_name
+
+
+def test_apply_ai_suggestions_accepts_profile_threshold_075():
+    pdf_file = make_pdf_file("AI Destekli Yazilim Gelistirme Egitimi.pdf")
+    classified = classify_pdf_file(pdf_file)
+    suggestions = suggest_filenames([classified])
+
+    ai_map = {
+        pdf_file.path: {
+            "suggested_name": "ai_destekli_yazilim_gelistirme_egitimi_study_material.pdf",
+            "document_type": "study_material",
+            "confidence": 0.75,
+            "should_apply": True,
+            "reason": "Training material.",
+            "improvement": "Changed generic document to study_material.",
+        }
+    }
+
+    updated = apply_ai_suggestions_to_filename_suggestions(
+        suggestions=suggestions,
+        ai_map=ai_map,
+        min_confidence=0.70,
+    )
+
+    assert updated[0].suggested_name == "ai_destekli_yazilim_gelistirme_egitimi_study_material.pdf"
+    assert updated[0].classified_pdf_file.document_type == DocumentType.STUDY_MATERIAL
+
+
+def test_apply_ai_suggestions_still_skips_below_explicit_threshold():
+    pdf_file = make_pdf_file("AI Destekli Yazilim Gelistirme Egitimi.pdf")
+    classified = classify_pdf_file(pdf_file)
+    suggestions = suggest_filenames([classified])
+
+    ai_map = {
+        pdf_file.path: {
+            "suggested_name": "ai_destekli_yazilim_gelistirme_egitimi_study_material.pdf",
+            "document_type": "study_material",
+            "confidence": 0.75,
+            "should_apply": True,
+            "reason": "Training material.",
+            "improvement": "Changed generic document to study_material.",
+        }
+    }
+
+    updated = apply_ai_suggestions_to_filename_suggestions(
+        suggestions=suggestions,
+        ai_map=ai_map,
+        min_confidence=0.80,
+    )
+
+    assert updated[0].suggested_name == suggestions[0].suggested_name

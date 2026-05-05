@@ -19,7 +19,7 @@ def load_ai_suggestion_map(path: Path) -> dict[Path, dict]:
 def apply_ai_suggestions_to_filename_suggestions(
     suggestions: list[FilenameSuggestion],
     ai_map: dict[Path, dict],
-    min_confidence: float = 0.80,
+    min_confidence: float = 0.70,
 ) -> list[FilenameSuggestion]:
     updated: list[FilenameSuggestion] = []
 
@@ -35,7 +35,11 @@ def apply_ai_suggestions_to_filename_suggestions(
         confidence = float(ai.get("confidence", 0.0))
         should_apply = bool(ai.get("should_apply", False))
 
-        if not should_apply or confidence < min_confidence:
+        if not should_apply:
+            updated.append(suggestion)
+            continue
+
+        if confidence < min_confidence:
             updated.append(suggestion)
             continue
 

@@ -1,3 +1,5 @@
+import json
+
 from typer.testing import CliRunner
 
 from pdf_namefix import __version__
@@ -173,6 +175,60 @@ def test_apply_cancelled_without_confirmation(tmp_path):
     assert "Apply cancelled" in result.output
     assert pdf.exists() is True
     assert target.exists() is False
+
+
+def test_apply_uses_profile_ai_threshold_by_default(tmp_path):
+    source_dir = tmp_path / "source"
+    source_dir.mkdir()
+
+    pdf = source_dir / "AI Destekli Yazilim Gelistirme Egitimi.pdf"
+    pdf.write_text("test", encoding="utf-8")
+
+    ai_json = tmp_path / "ai.json"
+    ai_json.write_text(
+        json.dumps(
+            {
+                "suggestions": [
+                    {
+                        "source_path": str(pdf),
+                        "source_name": pdf.name,
+                        "current": {
+                            "suggested_name": "ai_destekli_yazilim_gelistirme_egitimi_document.pdf",
+                            "document_type": "document",
+                            "confidence": 0.35,
+                        },
+                        "ai": {
+                            "suggested_name": "ai_destekli_yazilim_gelistirme_egitimi_study_material.pdf",
+                            "document_type": "study_material",
+                            "semantic_type": "technical_training_material",
+                            "confidence": 0.75,
+                            "reason": "Training material.",
+                            "improvement": "Changed document to study_material.",
+                            "should_apply": True,
+                        },
+                    }
+                ]
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "apply",
+            str(source_dir),
+            "--ai-suggestions",
+            str(ai_json),
+            "--yes",
+        ],
+    )
+
+    target = source_dir / "ai_destekli_yazilim_gelistirme_egitimi_study_material.pdf"
+
+    assert result.exit_code == 0
+    assert target.exists()
+    assert "AI min confidence: 0.7 (profile)" in result.output
 
 
 def test_ai_suggest_cancelled_without_confirmation(tmp_path):

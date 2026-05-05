@@ -12,9 +12,11 @@ DEFAULT_NAMING_PROFILE = {
     "include_unknown_date_prefix": False,
     "include_type_suffix": True,
     "preserve_author_for_books": True,
+    # Controls whether AI suggestions are safe enough to apply.
     "skip_if_confidence_below": 0.70,
     "ai_mode": "practical",
     "allow_known_work_inference": True,
+    # Controls which deterministic suggestions should be sent to AI.
     "low_confidence_threshold": 0.70,
     "folders": {
         "book": "books",

@@ -327,12 +327,12 @@ def apply(
         ),
     ] = None,
     ai_min_confidence: Annotated[
-        float,
+        float | None,
         typer.Option(
             "--ai-min-confidence",
-            help="Minimum AI confidence required for apply.",
+            help="Minimum AI confidence required for applying AI suggestions. Defaults to profile threshold.",
         ),
-    ] = 0.80,
+    ] = None,
 ) -> None:
     """
     Apply safe PDF filename changes.
@@ -352,13 +352,18 @@ def apply(
     )
     naming_profile = load_naming_profile(profile)
     suggestions = suggest_filenames(classified_files, profile=naming_profile)
+    effective_ai_min_confidence = (
+        ai_min_confidence
+        if ai_min_confidence is not None
+        else naming_profile.skip_if_confidence_below
+    )
 
     if ai_suggestions is not None:
         ai_map = load_ai_suggestion_map(ai_suggestions)
         suggestions = apply_ai_suggestions_to_filename_suggestions(
             suggestions=suggestions,
             ai_map=ai_map,
-            min_confidence=ai_min_confidence,
+            min_confidence=effective_ai_min_confidence,
         )
 
     report = build_preview_report(suggestions=suggestions, warnings=result.warnings)
@@ -373,8 +378,12 @@ def apply(
     console.print(f"Include unknown: [bold]{include_unknown}[/bold]")
     console.print(f"Minimum confidence: [bold]{min_confidence}[/bold]")
     if ai_suggestions:
+        threshold_source = "CLI" if ai_min_confidence is not None else "profile"
         console.print(f"AI suggestions: [bold]{ai_suggestions}[/bold]")
-        console.print(f"AI min confidence: [bold]{ai_min_confidence}[/bold]")
+        console.print(
+            f"AI min confidence: [bold]{effective_ai_min_confidence}[/bold] "
+            f"[dim]({threshold_source})[/dim]"
+        )
     console.print(f"Planned renames: [bold]{plan.planned_count}[/bold]")
     console.print(f"Skipped items: [bold]{plan.skipped_count}[/bold]")
     console.print(f"Warnings: [bold]{len(plan.warnings)}[/bold]")
