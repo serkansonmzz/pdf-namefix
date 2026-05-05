@@ -16,7 +16,7 @@ from pdf_namefix.preview_report import (
     filter_suggestions_by_type,
     limit_suggestions,
 )
-from pdf_namefix.report_exporter import SUPPORTED_REPORT_FORMATS, write_report
+from pdf_namefix.infrastructure.report_exporter import SUPPORTED_REPORT_FORMATS, write_report
 from pdf_namefix.scanner import scan_pdf_files
 
 

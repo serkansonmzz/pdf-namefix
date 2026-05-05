@@ -5,7 +5,7 @@ import typer
 from rich.console import Console
 
 from pdf_namefix.ai_naming import OpenAiNamingClient, select_ai_candidates
-from pdf_namefix.ai_report_exporter import write_ai_report
+from pdf_namefix.infrastructure.ai_report_exporter import write_ai_report
 from pdf_namefix.classifier import classify_pdf_files
 from pdf_namefix.models import AiNamingInput, AiNamingSuggestion
 from pdf_namefix.name_suggester import suggest_filenames
