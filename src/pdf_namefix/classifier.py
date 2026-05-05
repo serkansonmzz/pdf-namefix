@@ -2,7 +2,7 @@ import re
 from pathlib import Path
 
 from pdf_namefix.models import ClassifiedPdfFile, DocumentType, PdfFile, PdfInsights
-from pdf_namefix.type_resolver import document_type_from_filename_suffix
+from pdf_namefix.infrastructure.type_resolver import document_type_from_filename_suffix
 
 
 KEYWORD_RULES: list[tuple[DocumentType, tuple[str, ...]]] = [
