@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pdf_namefix.ai_naming import (
+from pdf_namefix.services.ai_naming import (
     OpenAiNamingClient,
     build_ai_prompt,
     clamp_confidence,
@@ -12,7 +12,7 @@ from pdf_namefix.services.classifier import classify_pdf_file
 from pdf_namefix.domain.ai_models import AiNamingInput
 from pdf_namefix.domain.models import DocumentType, PdfFile
 from pdf_namefix.services.name_suggester import suggest_filenames
-from pdf_namefix.naming_profile import load_default_naming_profile
+from pdf_namefix.domain.naming_profile import load_default_naming_profile
 
 
 class FakeResponse:

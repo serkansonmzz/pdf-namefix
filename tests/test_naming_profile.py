@@ -1,4 +1,4 @@
-from pdf_namefix.naming_profile import load_default_naming_profile, load_naming_profile
+from pdf_namefix.domain.naming_profile import load_default_naming_profile, load_naming_profile
 
 
 def test_load_default_naming_profile():

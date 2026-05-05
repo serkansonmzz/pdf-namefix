@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdf_namefix.apply_rename import (
+from pdf_namefix.app.use_cases.apply_rename import (
     apply_rename_plan,
     build_rename_plan,
 )

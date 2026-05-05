@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pdf_namefix.apply_ai_suggestions import (
+from pdf_namefix.services.apply_ai_suggestions import (
     apply_ai_suggestions_to_filename_suggestions,
     load_ai_suggestion_map,
 )

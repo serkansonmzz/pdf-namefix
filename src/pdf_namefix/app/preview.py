@@ -3,13 +3,13 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from pdf_namefix.apply_ai_suggestions import (
+from pdf_namefix.services.apply_ai_suggestions import (
     apply_ai_suggestions_to_filename_suggestions,
     load_ai_suggestion_map,
 )
 from pdf_namefix.services.classifier import classify_pdf_files
 from pdf_namefix.services.name_suggester import suggest_filenames
-from pdf_namefix.naming_profile import load_naming_profile
+from pdf_namefix.domain.naming_profile import load_naming_profile
 from pdf_namefix.services.pdf_inspector import inspect_pdf_files
 from pdf_namefix.services.preview_report import (
     build_preview_report,

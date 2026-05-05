@@ -3,7 +3,7 @@ from pathlib import Path
 import typer
 from rich.console import Console
 
-from pdf_namefix.undo import apply_undo_plan, build_undo_plan, find_latest_log
+from pdf_namefix.app.use_cases.undo import apply_undo_plan, build_undo_plan, find_latest_log
 
 
 def run_undo(
