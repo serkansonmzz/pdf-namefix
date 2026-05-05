@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pdf_namefix.models import DocumentType, FilenameSuggestion
+from pdf_namefix.domain.models import DocumentType, FilenameSuggestion
 
 
 def load_ai_suggestion_map(path: Path) -> dict[Path, dict]:

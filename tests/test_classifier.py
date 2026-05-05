@@ -1,12 +1,12 @@
 from pathlib import Path
 
-from pdf_namefix.classifier import (
+from pdf_namefix.services.classifier import (
     classify_pdf_file,
     classify_pdf_files,
     keyword_matches,
     normalize_filename_for_matching,
 )
-from pdf_namefix.models import DocumentType, PdfFile, PdfInsights
+from pdf_namefix.domain.models import DocumentType, PdfFile, PdfInsights
 
 
 def make_pdf_file(name: str) -> PdfFile:

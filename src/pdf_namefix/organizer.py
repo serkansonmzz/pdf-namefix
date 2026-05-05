@@ -3,7 +3,7 @@ import shutil
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pdf_namefix.models import (
+from pdf_namefix.domain.models import (
     ClassifiedPdfFile,
     DocumentType,
     OrganizePlan,

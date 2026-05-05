@@ -8,9 +8,10 @@ from pdf_namefix.ai_naming import (
     sanitize_ai_filename,
     select_ai_candidates,
 )
-from pdf_namefix.classifier import classify_pdf_file
-from pdf_namefix.models import AiNamingInput, DocumentType, PdfFile
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.classifier import classify_pdf_file
+from pdf_namefix.domain.ai_models import AiNamingInput
+from pdf_namefix.domain.models import DocumentType, PdfFile
+from pdf_namefix.services.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_default_naming_profile
 
 

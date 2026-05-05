@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pypdf import PdfReader
 
-from pdf_namefix.models import PdfFile, PdfInsights
+from pdf_namefix.domain.models import PdfFile, PdfInsights
 
 
 MAX_FIRST_PAGE_TEXT_CHARS = 3000

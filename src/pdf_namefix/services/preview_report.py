@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from pdf_namefix.models import DocumentType, FilenameSuggestion, ScanWarning
+from pdf_namefix.domain.models import DocumentType, FilenameSuggestion, ScanWarning
 
 
 @dataclass(frozen=True)

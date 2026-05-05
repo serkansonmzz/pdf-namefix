@@ -158,3 +158,11 @@ When releasing:
   - Control: lock existing `test_cli.py` expectations and keep text stable.
 - Risk: oversized PRs.
   - Control: strict phase scope and squash merge per phase.
+
+## Execution Status
+
+- Phase 1: completed
+- Phase 2: completed
+- Phase 3: completed
+- Phase 4: completed
+- Phase 5: completed (compatibility shims removed after callsite migration)

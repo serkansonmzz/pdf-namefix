@@ -4,9 +4,9 @@ from pdf_namefix.apply_rename import (
     apply_rename_plan,
     build_rename_plan,
 )
-from pdf_namefix.classifier import classify_pdf_file
-from pdf_namefix.models import PdfFile
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.classifier import classify_pdf_file
+from pdf_namefix.domain.models import PdfFile
+from pdf_namefix.services.name_suggester import suggest_filenames
 
 
 def make_pdf_file(path: Path) -> PdfFile:

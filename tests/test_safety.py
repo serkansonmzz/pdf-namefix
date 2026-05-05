@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdf_namefix.safety import check_output_not_inside_inputs, format_bytes
+from pdf_namefix.infrastructure.safety import check_output_not_inside_inputs, format_bytes
 
 
 def test_check_output_not_inside_inputs_blocks_nested_output(tmp_path: Path):

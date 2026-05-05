@@ -4,7 +4,8 @@ from typing import Any, Protocol
 
 from openai import OpenAI
 
-from pdf_namefix.models import AiNamingInput, AiNamingSuggestion, DocumentType, FilenameSuggestion
+from pdf_namefix.domain.ai_models import AiNamingInput, AiNamingSuggestion
+from pdf_namefix.domain.models import DocumentType, FilenameSuggestion
 from pdf_namefix.naming_profile import NamingProfile
 
 
