@@ -1,15 +1,15 @@
 from pathlib import Path
 
-from pdf_namefix.classifier import classify_pdf_file
-from pdf_namefix.models import PdfFile, ScanWarning
-from pdf_namefix.name_suggester import suggest_filenames
-from pdf_namefix.preview_report import (
+from pdf_namefix.services.classifier import classify_pdf_file
+from pdf_namefix.domain.models import PdfFile, ScanWarning
+from pdf_namefix.services.name_suggester import suggest_filenames
+from pdf_namefix.services.preview_report import (
     build_preview_report,
     build_preview_summary,
     filter_suggestions_by_type,
     limit_suggestions,
 )
-from pdf_namefix.models import DocumentType
+from pdf_namefix.domain.models import DocumentType
 
 def make_pdf_file(name: str) -> PdfFile:
     return PdfFile(

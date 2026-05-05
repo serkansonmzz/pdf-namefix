@@ -5,9 +5,9 @@ from pdf_namefix.apply_ai_suggestions import (
     apply_ai_suggestions_to_filename_suggestions,
     load_ai_suggestion_map,
 )
-from pdf_namefix.classifier import classify_pdf_file
-from pdf_namefix.models import DocumentType, PdfFile
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.classifier import classify_pdf_file
+from pdf_namefix.domain.models import DocumentType, PdfFile
+from pdf_namefix.services.name_suggester import suggest_filenames
 
 
 def make_pdf_file(name: str) -> PdfFile:

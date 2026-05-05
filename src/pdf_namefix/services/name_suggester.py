@@ -2,7 +2,7 @@ import re
 import unicodedata
 from pathlib import Path
 
-from pdf_namefix.models import ClassifiedPdfFile, FilenameSuggestion
+from pdf_namefix.domain.models import ClassifiedPdfFile, FilenameSuggestion
 from pdf_namefix.naming_profile import NamingProfile, load_default_naming_profile
 
 

@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdf_namefix.models import PdfFile, ScanResult, ScanWarning
+from pdf_namefix.domain.models import PdfFile, ScanResult, ScanWarning
 
 
 def is_pdf_file(path: Path) -> bool:

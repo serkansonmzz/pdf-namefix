@@ -2,8 +2,8 @@ from pathlib import Path
 
 from pypdf import PdfWriter
 
-from pdf_namefix.models import PdfFile
-from pdf_namefix.pdf_inspector import inspect_pdf_file, safe_str, truncate_text
+from pdf_namefix.domain.models import PdfFile
+from pdf_namefix.services.pdf_inspector import inspect_pdf_file, safe_str, truncate_text
 
 
 def make_pdf_file(path: Path) -> PdfFile:

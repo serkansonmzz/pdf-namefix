@@ -1,7 +1,8 @@
 from pathlib import Path
 
-from pdf_namefix.ai_report_exporter import render_ai_markdown_report, render_ai_json_report
-from pdf_namefix.models import AiNamingSuggestion, DocumentType
+from pdf_namefix.infrastructure.ai_report_exporter import render_ai_markdown_report, render_ai_json_report
+from pdf_namefix.domain.ai_models import AiNamingSuggestion
+from pdf_namefix.domain.models import DocumentType
 
 
 def make_suggestion():

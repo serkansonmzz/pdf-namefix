@@ -2,7 +2,7 @@ import json
 from datetime import datetime, timezone
 from pathlib import Path
 
-from pdf_namefix.models import AiNamingSuggestion
+from pdf_namefix.domain.ai_models import AiNamingSuggestion
 
 
 def ai_suggestion_to_dict(suggestion: AiNamingSuggestion) -> dict:

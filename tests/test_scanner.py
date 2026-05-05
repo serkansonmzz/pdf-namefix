@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdf_namefix.scanner import is_pdf_file, scan_pdf_files
+from pdf_namefix.services.scanner import is_pdf_file, scan_pdf_files
 
 
 def write_file(path: Path, content: str = "test") -> Path:

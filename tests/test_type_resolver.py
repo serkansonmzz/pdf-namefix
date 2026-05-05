@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from pdf_namefix.models import DocumentType
-from pdf_namefix.type_resolver import document_type_from_filename_suffix
+from pdf_namefix.domain.models import DocumentType
+from pdf_namefix.infrastructure.type_resolver import document_type_from_filename_suffix
 
 
 def test_resolves_study_material_suffix():

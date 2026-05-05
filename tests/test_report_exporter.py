@@ -1,11 +1,11 @@
 import json
 from pathlib import Path
 
-from pdf_namefix.classifier import classify_pdf_file
-from pdf_namefix.models import PdfFile
-from pdf_namefix.name_suggester import suggest_filenames
-from pdf_namefix.preview_report import build_preview_report
-from pdf_namefix.report_exporter import (
+from pdf_namefix.services.classifier import classify_pdf_file
+from pdf_namefix.domain.models import PdfFile
+from pdf_namefix.services.name_suggester import suggest_filenames
+from pdf_namefix.services.preview_report import build_preview_report
+from pdf_namefix.infrastructure.report_exporter import (
     render_json_report,
     render_markdown_report,
     report_to_dict,

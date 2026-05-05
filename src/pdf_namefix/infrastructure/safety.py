@@ -2,7 +2,7 @@ import shutil
 from dataclasses import dataclass
 from pathlib import Path
 
-from pdf_namefix.models import OrganizePlan
+from pdf_namefix.domain.models import OrganizePlan
 
 
 @dataclass(frozen=True)

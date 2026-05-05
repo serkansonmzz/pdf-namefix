@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from pdf_namefix.models import DocumentType
+from pdf_namefix.domain.models import DocumentType
 
 
 TYPE_SUFFIXES: list[tuple[str, DocumentType]] = [
