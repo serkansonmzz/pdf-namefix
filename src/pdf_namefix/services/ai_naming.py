@@ -2,11 +2,10 @@ import json
 import re
 from typing import Any, Protocol
 
-from openai import OpenAI
-
 from pdf_namefix.domain.ai_models import AiNamingInput, AiNamingSuggestion
 from pdf_namefix.domain.models import DocumentType, FilenameSuggestion
-from pdf_namefix.naming_profile import NamingProfile
+from pdf_namefix.domain.naming_profile import NamingProfile
+from pdf_namefix.infrastructure.clients.openai_client import build_openai_client
 
 
 AI_NAMING_SCHEMA = {
@@ -156,7 +155,7 @@ Examples:
 
 class OpenAiNamingClient:
     def __init__(self, client: Any | None = None) -> None:
-        self.client = client or OpenAI()
+        self.client = client or build_openai_client()
 
     def suggest_name(
         self,

@@ -4,8 +4,8 @@ import typer
 from rich.console import Console
 
 from pdf_namefix.services.classifier import classify_pdf_files
-from pdf_namefix.naming_profile import load_naming_profile
-from pdf_namefix.organizer import apply_organize_plan, build_organize_plan
+from pdf_namefix.domain.naming_profile import load_naming_profile
+from pdf_namefix.app.use_cases.organizer import apply_organize_plan, build_organize_plan
 from pdf_namefix.services.pdf_inspector import inspect_pdf_files
 from pdf_namefix.infrastructure.safety import (
     check_disk_space_for_copy,

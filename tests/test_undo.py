@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 
-from pdf_namefix.undo import (
+from pdf_namefix.app.use_cases.undo import (
     apply_undo_plan,
     build_undo_plan,
     find_latest_log,

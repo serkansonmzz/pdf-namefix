@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pdf_namefix.services.classifier import classify_pdf_file
 from pdf_namefix.domain.models import DocumentType, PdfFile
-from pdf_namefix.organizer import (
+from pdf_namefix.app.use_cases.organizer import (
     apply_organize_plan,
     build_organize_plan,
     folder_for_document_type,

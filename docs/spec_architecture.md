@@ -25,6 +25,10 @@ src/pdf_namefix/
     organize.py
     undo.py
     ai_suggest.py
+    use_cases/
+      apply_rename.py
+      organizer.py
+      undo.py
 
   domain/
     models.py
@@ -45,7 +49,8 @@ src/pdf_namefix/
     ai_report_exporter.py
     safety.py
     type_resolver.py
-    filesystem.py
+    clients/
+      openai_client.py
 ```
 
 ## Phase Plan
@@ -110,6 +115,21 @@ Acceptance:
 - Full suite green.
 - No dead compatibility modules.
 
+### Phase 6 - Strict Clean Architecture Alignment
+
+- Branch: `refactor/architecture-phase-06-strict-cleanup`
+- Move remaining root modules to target layers:
+  - `naming_profile.py` -> `domain/naming_profile.py`
+  - `ai_naming.py` and `apply_ai_suggestions.py` -> `services/`
+  - `apply_rename.py`, `organizer.py`, `undo.py` -> `app/use_cases/`
+- Introduce `infrastructure/clients/openai_client.py` and wire AI client construction through infrastructure.
+- Keep CLI behavior and report formats unchanged.
+
+Acceptance:
+
+- Full suite green.
+- No business/use-case modules left at package root.
+
 ## Branch, PR, Merge Workflow (Mandatory)
 
 For every phase:
@@ -166,3 +186,4 @@ When releasing:
 - Phase 3: completed
 - Phase 4: completed
 - Phase 5: completed (compatibility shims removed after callsite migration)
+- Phase 6: completed (strict layering applied for root leftovers)
