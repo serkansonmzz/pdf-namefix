@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 
 from pdf_namefix.models import FilenameSuggestion, ScanWarning
-from pdf_namefix.preview_report import PreviewReport
+from pdf_namefix.services.preview_report import PreviewReport
 
 
 SUPPORTED_REPORT_FORMATS = {"text", "markdown", "json"}

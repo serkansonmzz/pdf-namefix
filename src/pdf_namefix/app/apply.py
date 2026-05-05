@@ -8,12 +8,12 @@ from pdf_namefix.apply_ai_suggestions import (
     load_ai_suggestion_map,
 )
 from pdf_namefix.apply_rename import apply_rename_plan, build_rename_plan
-from pdf_namefix.classifier import classify_pdf_files
-from pdf_namefix.name_suggester import suggest_filenames
+from pdf_namefix.services.classifier import classify_pdf_files
+from pdf_namefix.services.name_suggester import suggest_filenames
 from pdf_namefix.naming_profile import load_naming_profile
-from pdf_namefix.pdf_inspector import inspect_pdf_files
-from pdf_namefix.preview_report import build_preview_report
-from pdf_namefix.scanner import scan_pdf_files
+from pdf_namefix.services.pdf_inspector import inspect_pdf_files
+from pdf_namefix.services.preview_report import build_preview_report
+from pdf_namefix.services.scanner import scan_pdf_files
 
 
 def run_apply(
