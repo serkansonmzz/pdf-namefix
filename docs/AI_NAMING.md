@@ -68,7 +68,36 @@ pdf-namefix apply ~/Downloads \
   --ai-suggestions ~/Desktop/ai-suggestions.json
 ```
 
-This applies only high-confidence AI suggestions (default: 0.80+) while maintaining all safety guarantees.
+This applies reviewed AI suggestions while maintaining all safety guarantees.
+
+## Apply confidence
+
+AI suggestions are not applied blindly.
+
+Default apply rule:
+
+```text
+should_apply = true
+confidence >= profile.skip_if_confidence_below
+```
+
+The default profile threshold is `0.70`.
+
+If you want stricter behavior:
+
+```bash
+pdf-namefix apply ~/Downloads \
+  --ai-suggestions ai.json \
+  --ai-min-confidence 0.85
+```
+
+If you want more practical behavior for personal folders:
+
+```bash
+pdf-namefix apply ~/Downloads \
+  --ai-suggestions ai.json \
+  --ai-min-confidence 0.6
+```
 
 ## Limit the number of files
 
@@ -102,6 +131,12 @@ pdf-namefix ai-suggest ~/Downloads \
 AI-assisted naming sends selected filename, metadata, and first-page text signals to a remote model provider.
 
 Do not use AI-assisted naming on sensitive documents unless you intentionally accept that data flow.
+
+## Metadata vs filename
+
+AI should prefer the original filename when it is meaningful.
+
+PDF metadata is treated as a supporting signal because metadata titles are sometimes generic, stale, or unrelated.
 
 ## Format differences
 

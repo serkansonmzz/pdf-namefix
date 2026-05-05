@@ -132,6 +132,10 @@ PDF metadata/text signals:
 Important behavior:
 - Do not invent dates. If profile.date_fallback is "none", do not add a date prefix.
 - Only add unknown-date prefix if include_unknown_date_prefix is true and date_fallback is not "none".
+- Prefer the original filename title when it is meaningful.
+- Treat PDF metadata title as a supporting signal, not always as the main title.
+- If metadata title looks generic, unrelated, or weaker than the filename, do not use it in the suggested filename.
+- Do not replace a clear filename topic with a vague metadata title.
 - Do not use generic document if a more specific type is reasonably clear.
 - If filename clearly contains a known public book title or title + author, you may classify it as book.
 - If it is a technical setup/tutorial document, prefer guide or study_material.
@@ -145,6 +149,7 @@ Examples:
 - How-To-Lie-With-Statistics.pdf is likely a public book title. A good name is unknown-date_how_to_lie_with_statistics_darrell_huff_book.pdf if the author is known or strongly indicated.
 - The-war-of-art-by-Robert-Pressfield.pdf is likely a public book title with author. A good name is unknown-date_the_war_of_art_robert_pressfield_book.pdf.
 - Neovim-ve-Tmux-kurulumu.pdf is likely a technical setup guide. A good name is unknown-date_neovim_tmux_setup_guide.pdf.
+- SSH-Key-ve-Vps-ayarları.pdf is likely a technical setup guide. A good name is ssh_key_vps_setup_guide.pdf. Do not replace the clear filename topic with weak metadata like "vite project" unless the content clearly requires it.
 """.strip()
 
 

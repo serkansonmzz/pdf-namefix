@@ -521,12 +521,34 @@ pdf-namefix apply ~/Downloads \
   --ai-suggestions ~/Desktop/ai-suggestions.json
 ```
 
+By default, AI suggestions are applied when:
+
+- `should_apply` is `true`
+- confidence is at or above the profile threshold (`skip_if_confidence_below`, default `0.70`)
+
+You can override this:
+
+```bash
+pdf-namefix apply ~/Downloads \
+  --ai-suggestions ~/Desktop/ai-suggestions.json \
+  --ai-min-confidence 0.85
+```
+
+or:
+
+```bash
+pdf-namefix apply ~/Downloads \
+  --ai-suggestions ~/Desktop/ai-suggestions.json \
+  --ai-min-confidence 0.6
+```
+
 Safety:
 
 - AI suggestions are generated first.
 - You review them.
 - Apply uses the reviewed JSON file.
 - Apply still uses no-overwrite and undo-safe behavior.
+- `pdf-namefix` is conservative about deletions and overwrites, but more practical for safe rename suggestions because rename operations are logged and undoable.
 
 By default, only unknown or low-confidence files are sent to AI.
 
@@ -570,6 +592,7 @@ uv run pdf-namefix --help
 - `docs/RELEASE_CHECKLIST.md`
 - `docs/RELEASE_NOTES_v0.1.0.md`
 - `docs/RELEASE_NOTES_v0.2.0.md`
+- `docs/RELEASE_NOTES_v0.2.3.md`
 - `docs/INSTALL.md`
 - `docs/PACKAGING.md`
 
